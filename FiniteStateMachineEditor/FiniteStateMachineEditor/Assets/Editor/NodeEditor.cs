@@ -163,7 +163,7 @@ public class NodeEditor : EditorWindow
    /// <param name="e"></param>
    private void DrawConnectionLine(Event e)
    {
-      if(selectedInPoint != null && selectedOutPoint == null)
+      if(selectedInPoint != null && selectedOutPoint == null && creatingTransition)
       {
          Handles.DrawLine(selectedInPoint.Rectangle.center, e.mousePosition);
          GUI.changed = true;

@@ -88,10 +88,23 @@ public class Node
                   nodeStyle = defaultStyle;
                }
             }
-            if(e.button == 1 && isSelected && rectangle.Contains(e.mousePosition))
+            if(e.button == 1)
             {
-               ProcessContextMenu();
-               e.Use();
+               if(rectangle.Contains(e.mousePosition))
+               {
+                  GUI.changed = true;
+                  isSelected = true;
+                  nodeStyle = selectedStyle;
+                  ProcessContextMenu();
+                  e.Use();
+               }
+               else
+               {
+                  GUI.changed = true;
+                  isSelected = false;
+                  nodeStyle = defaultStyle;
+               }
+               
             }
             break;
 
