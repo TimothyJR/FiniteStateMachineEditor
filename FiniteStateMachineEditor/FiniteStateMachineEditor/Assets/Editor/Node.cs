@@ -29,7 +29,7 @@ public class Node
    { get { return rectangle; } }
 
 
-   public Node(Vector2 position, float width, float height, GUIStyle defaultStyle, GUIStyle selectedStyle, GUIStyle inPointStyle, GUIStyle outPointStyle, Action<Node> OnClickRemoveNode, Action<Node> OnClickCreateConnection, Action<Node> OnClicked)
+   public Node(Vector2 position, float width, float height, GUIStyle defaultStyle, GUIStyle selectedStyle, Action<Node> OnClickRemoveNode, Action<Node> OnClickCreateConnection, Action<Node> OnClicked)
    {
       rectangle = new Rect(position.x, position.y, width, height);
       nodeStyle = defaultStyle;
@@ -41,16 +41,28 @@ public class Node
       Clicked = OnClicked;
    }
 
+   /// <summary>
+   /// Moves the node if it is being dragged
+   /// </summary>
+   /// <param name="delta"></param>
    public void DragNode(Vector2 delta)
    {
       rectangle.position += delta;
    }
 
+   /// <summary>
+   /// Draws the node
+   /// </summary>
    public void Draw()
    {
       GUI.Box(rectangle, title, nodeStyle);
    }
 
+   /// <summary>
+   /// Handles mouse input
+   /// </summary>
+   /// <param name="e"></param>
+   /// <returns></returns>
    public bool ProcessEvent(Event e)
    {
       switch(e.type)
@@ -100,6 +112,9 @@ public class Node
       return false;
    }
 
+   /// <summary>
+   /// Creates context menu when right clicking on nodes
+   /// </summary>
    private void ProcessContextMenu()
    {
       GenericMenu genericMenu = new GenericMenu();
@@ -108,6 +123,9 @@ public class Node
       genericMenu.ShowAsContext();
    }
 
+   /// <summary>
+   /// Calls actions for node removal
+   /// </summary>
    private void OnClickRemoveNode()
    {
       if(OnRemoveNode != null)
@@ -117,6 +135,9 @@ public class Node
 
    }
 
+   /// <summary>
+   /// Calls actions for creating connections
+   /// </summary>
    private void OnClickCreateConnection()
    {
       if(OnCreateConnection != null)

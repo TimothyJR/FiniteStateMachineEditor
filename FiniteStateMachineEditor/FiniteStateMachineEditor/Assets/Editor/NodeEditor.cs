@@ -10,8 +10,6 @@ public class NodeEditor : EditorWindow
 
    private GUIStyle defaultStyle;
    private GUIStyle selectedStyle;
-   private GUIStyle inPointStyle;
-   private GUIStyle outPointStyle;
 
    private bool creatingTransition = false;
    private Node selectedInPoint;
@@ -25,7 +23,7 @@ public class NodeEditor : EditorWindow
 
    private static NodeEditorSavedObjects savedGraph;
 
-   public static void OpenWindow(NodeEditorSavedObjects openedGraph, string pathToOpenedGraph)
+   public static void OpenWindow(NodeEditorSavedObjects openedGraph)
    {
       NodeEditor window = GetWindow<NodeEditor>();
       window.titleContent = new GUIContent("Node Editor");
@@ -33,6 +31,9 @@ public class NodeEditor : EditorWindow
       savedGraph = openedGraph;
    }
 
+   /// <summary>
+   /// Loads the graph from the scriptable asset and sets styles
+   /// </summary>
    private void OnEnable()
    {
       LoadGraph();
@@ -44,24 +45,20 @@ public class NodeEditor : EditorWindow
       selectedStyle = new GUIStyle();
       selectedStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/node1 on.png") as Texture2D;
       selectedStyle.border = new RectOffset(12, 12, 12, 12);
-
-      inPointStyle = new GUIStyle();
-      inPointStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/btn left.png") as Texture2D;
-      inPointStyle.active.background = EditorGUIUtility.Load("builtin skins/darkskin/images/btn left on.png") as Texture2D;
-      inPointStyle.border = new RectOffset(4, 4, 12, 12);
-
-      outPointStyle = new GUIStyle();
-      outPointStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/btn right.png") as Texture2D;
-      outPointStyle.active.background = EditorGUIUtility.Load("builtin skins/darkskin/images/btn right on.png") as Texture2D;
-      outPointStyle.border = new RectOffset(4, 4, 12, 12);
    }
 
+   /// <summary>
+   /// Grabs the info from the scriptable object.
+   /// </summary>
    private void LoadGraph()
    {
       nodes = savedGraph.Nodes;
       connections = savedGraph.Connections;
    }
 
+   /// <summary>
+   /// Updates the editor visuals
+   /// </summary>
    private void OnGUI()
    {
       DrawGrid(20.0f, 0.2f, Color.gray);
@@ -81,6 +78,9 @@ public class NodeEditor : EditorWindow
       }
    }
 
+   /// <summary>
+   /// Handles drawing the bar at the top of the editor
+   /// </summary>
    private void DrawMenuBar()
    {
       menuBar = new Rect(0, 0, position.width, menuBarHeight);
@@ -98,6 +98,12 @@ public class NodeEditor : EditorWindow
       GUILayout.EndArea();
    }
 
+   /// <summary>
+   /// Draws a grid as the background of the editor to give a sense of space
+   /// </summary>
+   /// <param name="gridSpacing"></param>
+   /// <param name="gridOpacity"></param>
+   /// <param name="gridColor"></param>
    private void DrawGrid(float gridSpacing, float gridOpacity, Color gridColor)
    {
       int widthDivisions = Mathf.CeilToInt(position.width / gridSpacing);
@@ -123,6 +129,9 @@ public class NodeEditor : EditorWindow
       Handles.EndGUI();
    }
 
+   /// <summary>
+   /// Draws each node
+   /// </summary>
    private void DrawNodes()
    {
       if(nodes != null)
@@ -134,6 +143,9 @@ public class NodeEditor : EditorWindow
       }
    }
 
+   /// <summary>
+   /// Draws each connection
+   /// </summary>
    private void DrawConnections()
    {
       if(connections != null)
@@ -145,22 +157,23 @@ public class NodeEditor : EditorWindow
       }
    }
 
+   /// <summary>
+   /// Draws the line for the connections
+   /// </summary>
+   /// <param name="e"></param>
    private void DrawConnectionLine(Event e)
    {
       if(selectedInPoint != null && selectedOutPoint == null)
       {
-         //Handles.DrawBezier(selectedInPoint.Rectangle.center, e.mousePosition, selectedInPoint.Rectangle.center + Vector2.left * 50.0f, e.mousePosition - Vector2.left * 50.0f, Color.white, null, 2.0f);
          Handles.DrawLine(selectedInPoint.Rectangle.center, e.mousePosition);
-         GUI.changed = true;
-      }
-
-      if(selectedOutPoint != null && selectedInPoint == null)
-      {
-         Handles.DrawBezier(selectedOutPoint.Rectangle.center, e.mousePosition, selectedOutPoint.Rectangle.center - Vector2.left * 50.0f, e.mousePosition + Vector2.left * 50.0f, Color.white, null, 2.0f);
          GUI.changed = true;
       }
    }
 
+   /// <summary>
+   /// Handles mouse input
+   /// </summary>
+   /// <param name="e"></param>
    private void ProcessEvents(Event e)
    {
       drag = Vector2.zero;
@@ -186,6 +199,10 @@ public class NodeEditor : EditorWindow
       }
    }
 
+   /// <summary>
+   /// Gives mouse input to the nodes
+   /// </summary>
+   /// <param name="e"></param>
    private void ProcessNodeEvents(Event e)
    {
       if(nodes != null)
@@ -203,6 +220,10 @@ public class NodeEditor : EditorWindow
       }
    }
 
+   /// <summary>
+   /// Handles dragging of the nodes
+   /// </summary>
+   /// <param name="delta"></param>
    private void OnDrag(Vector2 delta)
    {
       drag = delta;
@@ -216,6 +237,10 @@ public class NodeEditor : EditorWindow
       }
    }
 
+   /// <summary>
+   /// Creates a context menu when right clicking on the grid
+   /// </summary>
+   /// <param name="mousePosition"></param>
    private void ProcessContextMenu(Vector2 mousePosition)
    {
       GenericMenu genericMenu = new GenericMenu();
@@ -223,6 +248,10 @@ public class NodeEditor : EditorWindow
       genericMenu.ShowAsContext();
    }
 
+   /// <summary>
+   /// Creates a new node on the grid
+   /// </summary>
+   /// <param name="mousePosition"></param>
    private void OnClickAddNode(Vector2 mousePosition)
    {
       if(nodes == null)
@@ -230,15 +259,23 @@ public class NodeEditor : EditorWindow
          nodes = new List<Node>();
       }
 
-      nodes.Add(new Node(mousePosition, 200, 50, defaultStyle, selectedStyle, inPointStyle, outPointStyle, OnClickRemoveNode, OnStartConnection, OnNodeClick));
+      nodes.Add(new Node(mousePosition, 200, 50, defaultStyle, selectedStyle, OnClickRemoveNode, OnStartConnection, OnNodeClick));
    }
 
+   /// <summary>
+   /// Starts a transition connection
+   /// </summary>
+   /// <param name="node"></param>
    private void OnStartConnection(Node node)
    {
       selectedInPoint = node;
       creatingTransition = true;
    }
 
+   /// <summary>
+   /// Handles completing a transition connection
+   /// </summary>
+   /// <param name="node"></param>
    private void OnNodeClick(Node node)
    {
       if(creatingTransition)
@@ -253,11 +290,18 @@ public class NodeEditor : EditorWindow
       
    }
 
+   /// <summary>
+   /// Removes a connection when they are clicked
+   /// </summary>
+   /// <param name="connection"></param>
    private void OnClickRemoveConnection(Connection connection)
    {
       connections.Remove(connection);
    }
 
+   /// <summary>
+   /// Creates a connection
+   /// </summary>
    private void CreateConnection()
    {
       if(connections == null)
@@ -268,6 +312,10 @@ public class NodeEditor : EditorWindow
       connections.Add(new Connection(selectedInPoint, selectedOutPoint, OnClickRemoveConnection));
    }
 
+   /// <summary>
+   /// Removed a node and all of its connections
+   /// </summary>
+   /// <param name="node"></param>
    private void OnClickRemoveNode(Node node)
    {
       if(connections != null)
@@ -291,12 +339,18 @@ public class NodeEditor : EditorWindow
       nodes.Remove(node);
    }
 
+   /// <summary>
+   /// Clears out the nodes for creating a connection
+   /// </summary>
    private void ClearConnectionSelection()
    {
       selectedInPoint = null;
       selectedOutPoint = null;
    }
 
+   /// <summary>
+   /// Save the graph to the scriptable object
+   /// </summary>
    private void Save()
    {
       savedGraph.Nodes = nodes;

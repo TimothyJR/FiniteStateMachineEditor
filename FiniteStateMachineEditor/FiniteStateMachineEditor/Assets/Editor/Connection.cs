@@ -26,9 +26,11 @@ public class Connection
       this.OnClickedRemoveConnection = OnClickedRemoveConnection;
    }
 
+   /// <summary>
+   /// Draws a line from the inpoint to the outpoint
+   /// </summary>
    public void Draw()
    {
-      //Handles.DrawBezier(inPoint.Rectangle.center, outPoint.Rectangle.center, inPoint.Rectangle.center + Vector2.left * 50f, outPoint.Rectangle.center - Vector2.left * 50f, Color.white, null, 2.0f);
       Handles.DrawLine(inPoint.Rectangle.center, outPoint.Rectangle.center);
       if(Handles.Button((inPoint.Rectangle.center + outPoint.Rectangle.center) * 0.5f, Quaternion.identity, 4, 8, Handles.RectangleHandleCap))
       {

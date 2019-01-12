@@ -24,6 +24,7 @@ public class NodeEditorSavedObjects : ScriptableObject
       get { return connections; }
       set { connections = value; }
    }
+
    /// <summary>
    /// Opens up the node editor when you open the scriptable object
    /// </summary>
@@ -33,9 +34,14 @@ public class NodeEditorSavedObjects : ScriptableObject
    [OnOpenAsset]
    public static bool PullUpNodeEditor(int instanceID, int line)
    {
+      NodeEditorSavedObjects editor = EditorUtility.InstanceIDToObject(instanceID) as NodeEditorSavedObjects;
+      if(editor != null)
+      {
+         NodeEditor.OpenWindow((NodeEditorSavedObjects)EditorUtility.InstanceIDToObject(instanceID));
+         return true;
+      }
 
-      NodeEditor.OpenWindow((NodeEditorSavedObjects)EditorUtility.InstanceIDToObject(instanceID), AssetDatabase.GetAssetPath(instanceID));
-      return true;
+      return false;
    }
 
    
