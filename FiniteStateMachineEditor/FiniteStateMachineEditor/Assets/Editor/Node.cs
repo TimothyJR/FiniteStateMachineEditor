@@ -21,29 +21,24 @@ public class Node
 	private bool isDragged;
 	private bool isSelected;
 
-	private ConnectionPoint inPoint;
-	private ConnectionPoint outPoint;
-
 	public Action<Node> OnRemoveNode;
+   public Action<Node> OnCreateConnection;
+   public Action<Node> Clicked;
 
 	public Rect Rectangle
 	{ get { return rectangle; } }
 
-	public ConnectionPoint InPoint
-	{ get { return inPoint; } }
 
-	public ConnectionPoint OutPoint
-	{ get { return outPoint; } }
-
-	public Node(Vector2 position, float width, float height, GUIStyle defaultStyle, GUIStyle selectedStyle, GUIStyle inPointStyle, GUIStyle outPointStyle, Action<ConnectionPoint> OnClickInPoint, Action<ConnectionPoint> OnClickOutPoint, Action<Node> OnClickRemoveNode)
+	public Node(Vector2 position, float width, float height, GUIStyle defaultStyle, GUIStyle selectedStyle, GUIStyle inPointStyle, GUIStyle outPointStyle, Action<Node> OnClickRemoveNode, Action<Node> OnClickCreateConnection, Action<Node> OnClicked)
 	{
 		rectangle = new Rect(position.x, position.y, width, height);
 		nodeStyle = defaultStyle;
 		this.defaultStyle = defaultStyle;
 		this.selectedStyle = selectedStyle;
-		inPoint = new ConnectionPoint(this, ConnectionPointType.In, inPointStyle, OnClickInPoint);
-		outPoint = new ConnectionPoint(this, ConnectionPointType.Out, outPointStyle, OnClickOutPoint);
+
 		OnRemoveNode = OnClickRemoveNode;
+      OnCreateConnection = OnClickCreateConnection;
+      Clicked = OnClicked;
 	}
 
 	public void DragNode(Vector2 delta)
@@ -53,8 +48,6 @@ public class Node
 
 	public void Draw()
 	{
-		inPoint.Draw();
-		outPoint.Draw();
 		GUI.Box(rectangle, title, nodeStyle);
 	}
 
@@ -71,6 +64,10 @@ public class Node
 						GUI.changed = true;
 						isSelected = true;
 						nodeStyle = selectedStyle;
+                  if(Clicked != null)
+                  {
+                     Clicked(this);
+                  }
 					}
 					else
 					{
@@ -107,6 +104,7 @@ public class Node
 	{
 		GenericMenu genericMenu = new GenericMenu();
 		genericMenu.AddItem(new GUIContent("Remove node"), false, OnClickRemoveNode);
+      genericMenu.AddItem(new GUIContent("Create connection"), false, OnClickCreateConnection);
 		genericMenu.ShowAsContext();
 	}
 
@@ -118,4 +116,12 @@ public class Node
 		}
 
 	}
+
+   private void OnClickCreateConnection()
+   {
+      if(OnCreateConnection != null)
+      {
+         OnCreateConnection(this);
+      }
+   }
 }

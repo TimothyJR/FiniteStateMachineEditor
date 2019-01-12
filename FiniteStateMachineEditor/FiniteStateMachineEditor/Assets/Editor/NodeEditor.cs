@@ -13,8 +13,9 @@ public class NodeEditor : EditorWindow
 	private GUIStyle inPointStyle;
 	private GUIStyle outPointStyle;
 
-	private ConnectionPoint selectedInPoint;
-	private ConnectionPoint selectedOutPoint;
+   private bool creatingTransition = false;
+	private Node selectedInPoint;
+	private Node selectedOutPoint;
 
 	private Vector2 drag;
 	private Vector2 offset;
@@ -23,7 +24,6 @@ public class NodeEditor : EditorWindow
    private Rect menuBar;
 
    private static NodeEditorSavedObjects savedGraph;
-   private static string pathToSavedGraph;
 
 	public static void OpenWindow(NodeEditorSavedObjects openedGraph, string pathToOpenedGraph)
 	{
@@ -31,7 +31,6 @@ public class NodeEditor : EditorWindow
 		window.titleContent = new GUIContent("Node Editor");
 
       savedGraph = openedGraph;
-      pathToSavedGraph = pathToOpenedGraph;
 	}
 
 	private void OnEnable()
@@ -69,11 +68,11 @@ public class NodeEditor : EditorWindow
 		DrawGrid(100.0f, 0.4f, Color.gray);
       DrawMenuBar();
 
-		DrawNodes();
 		DrawConnections();
 		DrawConnectionLine(Event.current);
+      DrawNodes();
 
-		ProcessNodeEvents(Event.current);
+      ProcessNodeEvents(Event.current);
 		ProcessEvents(Event.current);
 
 		if(GUI.changed)
@@ -150,8 +149,9 @@ public class NodeEditor : EditorWindow
 	{
 		if(selectedInPoint != null && selectedOutPoint == null)
 		{
-			Handles.DrawBezier(selectedInPoint.Rectangle.center, e.mousePosition, selectedInPoint.Rectangle.center + Vector2.left * 50.0f, e.mousePosition - Vector2.left * 50.0f, Color.white, null, 2.0f);
-			GUI.changed = true;
+			//Handles.DrawBezier(selectedInPoint.Rectangle.center, e.mousePosition, selectedInPoint.Rectangle.center + Vector2.left * 50.0f, e.mousePosition - Vector2.left * 50.0f, Color.white, null, 2.0f);
+         Handles.DrawLine(selectedInPoint.Rectangle.center, e.mousePosition);
+         GUI.changed = true;
 		}
 
 		if(selectedOutPoint != null && selectedInPoint == null)
@@ -167,10 +167,14 @@ public class NodeEditor : EditorWindow
 		switch(e.type)
 		{
 			case EventType.MouseDown:
-				if(e.button == 1)
+				if(e.button == 0)
 				{
-					ProcessContextMenu(e.mousePosition);
+               creatingTransition = false;
 				}
+            else if(e.button == 1)
+            {
+               ProcessContextMenu(e.mousePosition);
+            }
 				break;
 			case EventType.MouseDrag:
 				if(e.button == 0)
@@ -226,44 +230,28 @@ public class NodeEditor : EditorWindow
 			nodes = new List<Node>();
 		}
 
-		nodes.Add(new Node(mousePosition, 200, 50, defaultStyle, selectedStyle, inPointStyle, outPointStyle, OnClickInPoint, OnClickOutPoint, OnClickRemoveNode));
+		nodes.Add(new Node(mousePosition, 200, 50, defaultStyle, selectedStyle, inPointStyle, outPointStyle, OnClickRemoveNode, OnStartConnection, OnNodeClick));
 	}
 
-	private void OnClickInPoint(ConnectionPoint inPoint)
+	private void OnStartConnection(Node node)
 	{
-		selectedInPoint = inPoint;
-
-		if(selectedOutPoint != null)
-		{
-			if(selectedOutPoint.ConnectedNode != selectedInPoint.ConnectedNode)
-			{
-				CreateConnection();
-				ClearConnectionSelection();
-			}
-			else
-			{
-				ClearConnectionSelection();
-			}
-		}
+		selectedInPoint = node;
+      creatingTransition = true;
 	}
 
-	private void OnClickOutPoint(ConnectionPoint outPoint)
+	private void OnNodeClick(Node node)
 	{
-		selectedOutPoint = outPoint;
-
-		if(selectedInPoint != null)
-		{
-			if(selectedOutPoint.ConnectedNode != selectedInPoint.ConnectedNode)
-			{
-				CreateConnection();
-				ClearConnectionSelection();
-			}
-			else
-			{
-				ClearConnectionSelection();
-			}
-		}
-	}
+      if(creatingTransition)
+      {
+         selectedOutPoint = node;
+         if (selectedOutPoint != selectedInPoint)
+   		{
+   			CreateConnection();
+   			ClearConnectionSelection();
+   		}
+      }
+      
+   }
 
 	private void OnClickRemoveConnection(Connection connection)
 	{
@@ -288,7 +276,7 @@ public class NodeEditor : EditorWindow
 
 			for(int i = 0; i < connections.Count; i++)
 			{
-				if(connections[i].InPoint == node.InPoint || connections[i].OutPoint == node.OutPoint)
+				if(connections[i].InPoint == node || connections[i].OutPoint == node)
 				{
 					connectionsToRemove.Add(connections[i]);
 				}
