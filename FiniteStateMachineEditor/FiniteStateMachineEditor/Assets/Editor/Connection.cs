@@ -14,6 +14,7 @@ public class Connection
    private Action<Connection> OnClickedRemoveConnection;
 
    Vector2[] trianglePoints;
+   Vector2[] currentTrianglePoints;
 
    public Node InPoint
    { get { return inPoint; } }
@@ -31,6 +32,9 @@ public class Connection
       trianglePoints[0] = new Vector3(0, 1.3f);
       trianglePoints[1] = new Vector2(1.15f, -0.7f);
       trianglePoints[2] = new Vector2(-1.15f, -0.7f);
+
+      currentTrianglePoints = new Vector2[3];
+      UpdateTriangle();
    }
 
    /// <summary>
@@ -40,11 +44,11 @@ public class Connection
    {
       Handles.DrawLine(inPoint.Rectangle.center, outPoint.Rectangle.center);
 
-      Vector2 position = (inPoint.Rectangle.center + outPoint.Rectangle.center) * 0.5f;
-      float rotation = Vector2.SignedAngle(-trianglePoints[0], inPoint.Rectangle.center - outPoint.Rectangle.center);
-      DrawTriangle(position, 10.0f, rotation);
+      Handles.DrawLine(currentTrianglePoints[0], currentTrianglePoints[1]);
+      Handles.DrawLine(currentTrianglePoints[1], currentTrianglePoints[2]);
+      Handles.DrawLine(currentTrianglePoints[2], currentTrianglePoints[0]);
 
-      if (Handles.Button(position, Quaternion.identity, 4, 8, Handles.CircleHandleCap))
+      if (Handles.Button((inPoint.Rectangle.center + outPoint.Rectangle.center) * 0.5f, Quaternion.identity, 4, 8, Handles.CircleHandleCap))
       {
          if(OnClickedRemoveConnection != null)
          {
@@ -53,19 +57,43 @@ public class Connection
       }
    }
 
-   private void DrawTriangle(Vector2 position, float size, float rotationAngle)
+   /// <summary>
+   /// Updates the triangle. Primarily used to initialize the triangle.
+   /// </summary>
+   public void UpdateTriangle()
+   {
+         float rotation = Vector2.SignedAngle(-trianglePoints[0], inPoint.Rectangle.center - outPoint.Rectangle.center);
+         CalculateTriangle((inPoint.Rectangle.center + outPoint.Rectangle.center) * 0.5f, 10.0f, rotation);
+   }
+
+   /// <summary>
+   /// Updates the triangle. Primarily used when the editor has changes.
+   /// </summary>
+   public void UpdateTriangle(Node node)
+   {
+      if(node == inPoint || node == outPoint)
+      {
+         float rotation = Vector2.SignedAngle(-trianglePoints[0], inPoint.Rectangle.center - outPoint.Rectangle.center);
+         CalculateTriangle((inPoint.Rectangle.center + outPoint.Rectangle.center) * 0.5f, 10.0f, rotation);
+      }
+   }
+
+   /// <summary>
+   /// Draws a triangle pointing towards the outPoint node
+   /// </summary>
+   /// <param name="position"></param>
+   /// <param name="size"></param>
+   /// <param name="rotationAngle"></param>
+   private void CalculateTriangle(Vector2 position, float size, float rotationAngle)
    {
       float sin = Mathf.Sin(rotationAngle * Mathf.Deg2Rad);
       float cos = Mathf.Cos(rotationAngle * Mathf.Deg2Rad);
 
-      Vector2[] rotatedPoints = new Vector2[3];
-      
-      rotatedPoints[0] = (new Vector2(trianglePoints[0].x * cos - trianglePoints[0].y * sin, trianglePoints[0].x * sin + trianglePoints[0].y * cos) * size) + position;
-      rotatedPoints[1] = (new Vector2(trianglePoints[1].x * cos - trianglePoints[1].y * sin, trianglePoints[1].x * sin + trianglePoints[1].y * cos) * size) + position;
-      rotatedPoints[2] = (new Vector2(trianglePoints[2].x * cos - trianglePoints[2].y * sin, trianglePoints[2].x * sin + trianglePoints[2].y * cos) * size) + position;
 
-      Handles.DrawLine(rotatedPoints[0], rotatedPoints[1]);
-      Handles.DrawLine(rotatedPoints[1], rotatedPoints[2]);
-      Handles.DrawLine(rotatedPoints[2], rotatedPoints[0]);
+      currentTrianglePoints[0] = (new Vector2(trianglePoints[0].x * cos - trianglePoints[0].y * sin, trianglePoints[0].x * sin + trianglePoints[0].y * cos) * size) + position;
+      currentTrianglePoints[1] = (new Vector2(trianglePoints[1].x * cos - trianglePoints[1].y * sin, trianglePoints[1].x * sin + trianglePoints[1].y * cos) * size) + position;
+      currentTrianglePoints[2] = (new Vector2(trianglePoints[2].x * cos - trianglePoints[2].y * sin, trianglePoints[2].x * sin + trianglePoints[2].y * cos) * size) + position;
+
+
    }
 }

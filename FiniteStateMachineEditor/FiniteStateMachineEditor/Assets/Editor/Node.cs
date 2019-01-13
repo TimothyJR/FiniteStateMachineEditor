@@ -24,12 +24,13 @@ public class Node
    public Action<Node> OnRemoveNode;
    public Action<Node> OnCreateConnection;
    public Action<Node> Clicked;
+   public Action<Node> Changed;
 
    public Rect Rectangle
    { get { return rectangle; } }
 
 
-   public Node(Vector2 position, float width, float height, GUIStyle defaultStyle, GUIStyle selectedStyle, Action<Node> OnClickRemoveNode, Action<Node> OnClickCreateConnection, Action<Node> OnClicked)
+   public Node(Vector2 position, float width, float height, GUIStyle defaultStyle, GUIStyle selectedStyle, Action<Node> OnClickRemoveNode, Action<Node> OnClickCreateConnection, Action<Node> OnClicked, Action<Node> OnChanged)
    {
       rectangle = new Rect(position.x, position.y, width, height);
       nodeStyle = defaultStyle;
@@ -39,6 +40,7 @@ public class Node
       OnRemoveNode = OnClickRemoveNode;
       OnCreateConnection = OnClickCreateConnection;
       Clicked = OnClicked;
+      Changed = OnChanged;
    }
 
    /// <summary>
@@ -116,6 +118,7 @@ public class Node
             {
                DragNode(e.delta);
                e.Use();
+               OnNodeChange();
                return true;
             }
             break;
@@ -156,6 +159,17 @@ public class Node
       if(OnCreateConnection != null)
       {
          OnCreateConnection(this);
+      }
+   }
+
+   /// <summary>
+   /// Calls actions when the node is changed
+   /// </summary>
+   private void OnNodeChange()
+   {
+      if(Changed != null)
+      {
+         Changed(this);
       }
    }
 }

@@ -235,6 +235,14 @@ public class NodeEditor : EditorWindow
             nodes[i].DragNode(delta);
          }
       }
+
+      if(connections != null)
+      {
+         for(int i = 0; i < connections.Count; i++)
+         {
+            connections[i].UpdateTriangle();
+         }
+      }
    }
 
    /// <summary>
@@ -259,7 +267,7 @@ public class NodeEditor : EditorWindow
          nodes = new List<Node>();
       }
 
-      nodes.Add(new Node(mousePosition, 200, 50, defaultStyle, selectedStyle, OnClickRemoveNode, OnStartConnection, OnNodeClick));
+      nodes.Add(new Node(mousePosition, 200, 50, defaultStyle, selectedStyle, OnClickRemoveNode, OnStartConnection, OnNodeClick, OnNodeChange));
    }
 
    /// <summary>
@@ -337,6 +345,21 @@ public class NodeEditor : EditorWindow
       }
 
       nodes.Remove(node);
+   }
+
+   /// <summary>
+   /// When a node is changed, update the connector so the triangle updates
+   /// </summary>
+   /// <param name="node"></param>
+   private void OnNodeChange(Node node)
+   {
+      if (connections != null)
+      {
+         for (int i = 0; i < connections.Count; i++)
+         {
+            connections[i].UpdateTriangle(node);
+         }
+      }
    }
 
    /// <summary>
