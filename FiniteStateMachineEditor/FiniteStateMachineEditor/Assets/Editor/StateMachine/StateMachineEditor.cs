@@ -211,7 +211,7 @@ namespace StateMachine
       {
          if (transitionStartState != null && transitionEndState == null && creatingTransition)
          {
-            Handles.DrawLine(transitionStartState.NodeState.Rectangle.center, e.mousePosition);
+            EditorDraw.DrawLine(transitionStartState.NodeState.Rectangle.center, e.mousePosition, Color.white, 3);
             GUI.changed = true;
          }
       }
@@ -282,7 +282,7 @@ namespace StateMachine
 
          for (int i = 0; i < states.Count; i++)
          {
-            states[i].UpdateTriangle(states[i].NodeState);
+            states[i].UpdateTriangleRotation(states[i].NodeState);
          }
       }
 
@@ -373,7 +373,7 @@ namespace StateMachine
                {
                   if (states[i].NodeState.Transitions[j].NextState == state.NodeState)
                   {
-                     states[i].NodeState.Transitions.Remove(states[i].NodeState.Transitions[j]);
+                     states[i].RemoveConnectedState(state.NodeState, states[i].NodeState.Transitions[j]);
                   }
                }
             }
@@ -391,7 +391,7 @@ namespace StateMachine
          {
             for (int j = 0; j < states[i].NodeState.Transitions.Count; j++)
             {
-               states[i].UpdateTriangle(state.NodeState);
+               states[i].UpdateTriangleRotation(state.NodeState);
             }
          }
       }

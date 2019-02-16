@@ -8,6 +8,7 @@ namespace StateMachine
 {
    public class StateNode
    {
+      static int idCount = 0;
       private State state;
       private GUIStyle stateStyle;
 
@@ -23,7 +24,7 @@ namespace StateMachine
       public Action<TransitionDataHolder> OnTransitionClicked;
 
       // Transition related
-      Vector2[] trianglePoints;
+      //Vector2[] trianglePoints;
       Dictionary<State, TransitionDataHolder> stateTransitionInfo;
 
       public State NodeState
@@ -31,10 +32,16 @@ namespace StateMachine
          get { return state; }
       }
 
+      public Dictionary<State, TransitionDataHolder> StateTransitionInfo
+      {
+         set { stateTransitionInfo = value; }
+      }
+
       public StateNode(Vector2 position, float width, float height, Action<StateNode> OnClickRemoveState, Action<StateNode> OnClickCreateTransition, Action<StateNode> OnClicked, Action<StateNode> OnChanged, Action<TransitionDataHolder> OnTransitionClicked)
       {
          state = ScriptableObject.CreateInstance<State>();
-         state.StateName = "New State";
+         state.StateName = "" + idCount;
+         idCount += 1;
 
          state.Rectangle = new Rect(position.x, position.y, width, height);
 
@@ -47,7 +54,6 @@ namespace StateMachine
 
          Init(OnClickRemoveState, OnClickCreateTransition, OnClicked, OnChanged, OnTransitionClicked);
       }
-
 
       /// <summary>
       /// Used for shared code between the different constructors
@@ -66,11 +72,6 @@ namespace StateMachine
          Clicked = OnClicked;
          Changed = OnChanged;
 
-         trianglePoints = new Vector2[3];
-         trianglePoints[0] = new Vector3(0, 1.3f);
-         trianglePoints[1] = new Vector2(1.15f, -0.7f);
-         trianglePoints[2] = new Vector2(-1.15f, -0.7f);
-
          stateTransitionInfo = new Dictionary<State, TransitionDataHolder>();
 
          for (int i = 0; i < state.Transitions.Count; i++)
@@ -79,11 +80,10 @@ namespace StateMachine
             {
                connectedStates.Add(state.Transitions[i].NextState);
                TransitionDataHolder t = new TransitionDataHolder();
-               t.CurrentTrianglePoints = new Vector2[3];
                t.TransitionsForState = new List<Transition>();
                t.TransitionsForState.Add(state.Transitions[i]);
                stateTransitionInfo.Add(state.Transitions[i].NextState, t);
-               UpdateTriangle(state.Transitions[i].NextState);
+               UpdateTriangleRotation(state.Transitions[i].NextState);
             }
             else
             {
@@ -93,39 +93,25 @@ namespace StateMachine
       }
 
       /// <summary>
-      /// Updates the triangle on the transition graphics
+      /// Updates the rotation that is used by the triangle sprite for transitions
       /// </summary>
-      public void UpdateTriangle(State changedState)
+      /// <param name="changedState"></param>
+      public void UpdateTriangleRotation(State changedState)
       {
          if (connectedStates.Contains(changedState))
          {
-            float rotation = Vector2.SignedAngle(-trianglePoints[0], state.Rectangle.center - changedState.Rectangle.center);
-            CalculateTriangle((state.Rectangle.center + changedState.Rectangle.center) * 0.5f, 10.0f, rotation, changedState);
+            float rotation = Vector2.SignedAngle(new Vector2(0, -1.0f), changedState.Rectangle.center - state.Rectangle.center);
+            stateTransitionInfo[changedState].Rotation = rotation;
          }
          else if (state == changedState)
          {
             for(int i = 0; i < connectedStates.Count; i++)
             {
-               float rotation = Vector2.SignedAngle(-trianglePoints[0], state.Rectangle.center - connectedStates[i].Rectangle.center);
-               CalculateTriangle((state.Rectangle.center + connectedStates[i].Rectangle.center) * 0.5f, 10.0f, rotation, connectedStates[i]);
+               float rotation = Vector2.SignedAngle(new Vector2(0, -1.0f), connectedStates[i].Rectangle.center - changedState.Rectangle.center);
+               stateTransitionInfo[connectedStates[i]].Rotation = rotation;
             }
          }
-      }
 
-      /// <summary>
-      /// Draws a triangle pointing towards the outPoint node
-      /// </summary>
-      /// <param name="position"></param>
-      /// <param name="size"></param>
-      /// <param name="rotationAngle"></param>
-      private void CalculateTriangle(Vector2 position, float size, float rotationAngle, State state)
-      {
-         float sin = Mathf.Sin(rotationAngle * Mathf.Deg2Rad);
-         float cos = Mathf.Cos(rotationAngle * Mathf.Deg2Rad);
-
-         stateTransitionInfo[state].CurrentTrianglePoints[0] = (new Vector2(trianglePoints[0].x * cos - trianglePoints[0].y * sin, trianglePoints[0].x * sin + trianglePoints[0].y * cos) * size) + position;
-         stateTransitionInfo[state].CurrentTrianglePoints[1] = (new Vector2(trianglePoints[1].x * cos - trianglePoints[1].y * sin, trianglePoints[1].x * sin + trianglePoints[1].y * cos) * size) + position;
-         stateTransitionInfo[state].CurrentTrianglePoints[2] = (new Vector2(trianglePoints[2].x * cos - trianglePoints[2].y * sin, trianglePoints[2].x * sin + trianglePoints[2].y * cos) * size) + position;
       }
 
       /// <summary>
@@ -143,19 +129,34 @@ namespace StateMachine
       {
          for (int i = 0; i < connectedStates.Count; i++)
          {
-            Handles.DrawLine(state.Rectangle.center, connectedStates[i].Rectangle.center);
+            EditorDraw.DrawLine(state.Rectangle.center, connectedStates[i].Rectangle.center, Color.white, 5);
 
-            Handles.DrawLine(stateTransitionInfo[connectedStates[i]].CurrentTrianglePoints[0], stateTransitionInfo[connectedStates[i]].CurrentTrianglePoints[1]);
-            Handles.DrawLine(stateTransitionInfo[connectedStates[i]].CurrentTrianglePoints[1], stateTransitionInfo[connectedStates[i]].CurrentTrianglePoints[2]);
-            Handles.DrawLine(stateTransitionInfo[connectedStates[i]].CurrentTrianglePoints[2], stateTransitionInfo[connectedStates[i]].CurrentTrianglePoints[0]);
+            EditorDraw.DrawTriangle((state.Rectangle.center + connectedStates[i].Rectangle.center) / 2, stateTransitionInfo[connectedStates[i]].Rotation, Color.white, 5);
 
-            if (Handles.Button((state.Rectangle.center + connectedStates[i].Rectangle.center) * 0.5f, Quaternion.identity, 4, 8, Handles.CircleHandleCap))
-            {
-               if (OnTransitionClicked != null)
-               {
-                  OnTransitionClicked(stateTransitionInfo[connectedStates[i]]);
-               }
-            }
+            //if (Handles.Button((state.Rectangle.center + connectedStates[i].Rectangle.center) * 0.5f, Quaternion.identity, 4, 8, Handles.CircleHandleCap))
+            //{
+            //   Event e = Event.current;
+            //   if(e.type == EventType.MouseUp && e.button == 0)
+            //   {
+            //      Debug.Log("Left Up");
+            //      if (OnTransitionClicked != null)
+            //      {
+            //         OnTransitionClicked(stateTransitionInfo[connectedStates[i]]);
+            //      }
+            //   }
+            //   else if(e.type == EventType.MouseDown && e.button == 0)
+            //   {
+            //      Debug.Log("Left Down");
+            //   }
+            //   else if (e.type == EventType.MouseUp && e.button == 1)
+            //   {
+            //      Debug.Log("Right Up");
+            //   }
+            //   else if (e.type == EventType.MouseDown && e.button == 1)
+            //   {
+            //      Debug.Log("Right Down");
+            //   }
+            //}
          }
       }
 
@@ -291,7 +292,6 @@ namespace StateMachine
          {
             connectedStates.Add(endState);
             TransitionDataHolder t = new TransitionDataHolder();
-            t.CurrentTrianglePoints = new Vector2[3];
             t.TransitionsForState = new List<Transition>();
             t.TransitionsForState.Add(transition);
             stateTransitionInfo.Add(endState, t);
@@ -301,7 +301,8 @@ namespace StateMachine
             stateTransitionInfo[endState].TransitionsForState.Add(transition);
          }
 
-         UpdateTriangle(endState);
+         //UpdateTriangle(endState);
+         UpdateTriangleRotation(endState);
       }
 
       ///// <summary>
@@ -316,6 +317,13 @@ namespace StateMachine
       //      Transitions.Remove(transitionToRemove);
       //   }
       //}
+
+      public void RemoveConnectedState(State state, Transition transition)
+      {
+         stateTransitionInfo.Remove(state);
+         this.state.Transitions.Remove(transition);
+         connectedStates.Remove(state);
+      }
    }
 
    [System.Serializable]
@@ -442,13 +450,13 @@ namespace StateMachine
 
    public class TransitionDataHolder
    {
-      private Vector2[] currentTrianglePoints;
+      private float rotation;
       private List<Transition> transitionsForState;
 
-      public Vector2[] CurrentTrianglePoints
+      public float Rotation
       {
-         get { return currentTrianglePoints; }
-         set { currentTrianglePoints = value; }
+         get { return rotation; }
+         set { rotation = value; }
       }
 
       public List<Transition> TransitionsForState
