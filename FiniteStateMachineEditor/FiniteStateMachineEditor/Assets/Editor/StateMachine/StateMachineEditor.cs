@@ -8,8 +8,6 @@ namespace StateMachine
    public class StateMachineEditor : EditorWindow
    {
       private List<StateNode> states;
-      private List<StateNode> addedStates;
-      private List<StateNode> removedStates;
 
       private static StateMachine currentSM;
       private static GUIStyle defaultStyle;
@@ -60,8 +58,6 @@ namespace StateMachine
          previousWidth = position.width;
          previousHeight = position.height;
 
-         LoadGraph();
-
          defaultStyle = new GUIStyle();
          defaultStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/node1.png") as Texture2D;
          defaultStyle.border = new RectOffset(12, 12, 12, 12);
@@ -77,6 +73,8 @@ namespace StateMachine
          startSelectedStyle = new GUIStyle();
          startSelectedStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/node2 on.png") as Texture2D;
          startSelectedStyle.border = new RectOffset(12, 12, 12, 12);
+
+         LoadGraph();
 
          menuBar = new Rect(0, 0, position.width, menuBarHeight);
 
@@ -304,7 +302,8 @@ namespace StateMachine
       private void OnClickAddState(Vector2 mousePosition)
       {
          states.Add(new StateNode(mousePosition, 200, 50, OnClickRemoveState, OnStartTransition, OnStateClick, OnStateChange, OnTransitionClicked));
-         addedStates.Add(states[states.Count - 1]);
+         states[states.Count - 1].NodeState.hideFlags = HideFlags.HideInHierarchy;
+         AssetDatabase.AddObjectToAsset(states[states.Count - 1].NodeState, currentSM);
       }
 
       /// <summary>
@@ -379,6 +378,7 @@ namespace StateMachine
             }
          }
          states.Remove(state);
+         DestroyImmediate(state.NodeState);
       }
 
       /// <summary>
@@ -411,8 +411,6 @@ namespace StateMachine
       private void LoadGraph()
       {
          states = new List<StateNode>();
-         addedStates = new List<StateNode>();
-         removedStates = new List<StateNode>();
          if (currentSM != null)
          {
             // Load data
@@ -433,18 +431,6 @@ namespace StateMachine
       /// </summary>
       private void Save()
       {
-         for(int i = 0; i < addedStates.Count; i++)
-         {
-            addedStates[i].NodeState.hideFlags = HideFlags.HideInHierarchy;
-            AssetDatabase.AddObjectToAsset(addedStates[i].NodeState, currentSM);
-         }
-
-         for(int i = 0; i < removedStates.Count; i++)
-         {
-            DestroyImmediate(removedStates[i].NodeState);
-         }
-         removedStates.Clear();
-
          AssetDatabase.SaveAssets();
       }
    }
