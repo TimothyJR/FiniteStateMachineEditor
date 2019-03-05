@@ -12,6 +12,12 @@ namespace StateMachine
    
       [SerializeField] private State currentState;
 
+      public State CurrentState
+      {
+         get { return currentState; }
+         set { currentState = value; }
+      }
+
       /// <summary>
       /// Initialize the state machine
       /// </summary>

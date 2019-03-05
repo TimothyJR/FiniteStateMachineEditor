@@ -17,14 +17,14 @@ namespace StateMachine
 
       private List<State> connectedStates;
 
-      public Action<StateNode> OnRemoveNode;
-      public Action<StateNode> OnCreateConnection;
-      public Action<StateNode> Clicked;
-      public Action<StateNode> Changed;
-      public Action<TransitionDataHolder> OnTransitionClicked;
+      private Action<StateNode> OnRemoveNode;
+      private Action<StateNode> OnCreateConnection;
+      private Action<StateNode> Clicked;
+      private Action<StateNode> Changed;
+      private Action<StateNode> StartState;
+      private Action<TransitionDataHolder> OnTransitionClicked;
 
       // Transition related
-      //Vector2[] trianglePoints;
       Dictionary<State, TransitionDataHolder> stateTransitionInfo;
 
       public State NodeState
@@ -37,7 +37,19 @@ namespace StateMachine
          set { stateTransitionInfo = value; }
       }
 
-      public StateNode(Vector2 position, float width, float height, Action<StateNode> OnClickRemoveState, Action<StateNode> OnClickCreateTransition, Action<StateNode> OnClicked, Action<StateNode> OnChanged, Action<TransitionDataHolder> OnTransitionClicked)
+      /// <summary>
+      /// Used when creating a new state in the editor
+      /// </summary>
+      /// <param name="position"></param>
+      /// <param name="width"></param>
+      /// <param name="height"></param>
+      /// <param name="OnClickRemoveState"></param>
+      /// <param name="OnClickCreateTransition"></param>
+      /// <param name="OnClicked"></param>
+      /// <param name="OnChanged"></param>
+      /// <param name="OnTransitionClicked"></param>
+      /// <param name="OnClickStartState"></param>
+      public StateNode(Vector2 position, float width, float height, Action<StateNode> OnClickRemoveState, Action<StateNode> OnClickCreateTransition, Action<StateNode> OnClicked, Action<StateNode> OnChanged, Action<TransitionDataHolder> OnTransitionClicked, Action<StateNode> OnClickStartState)
       {
          state = ScriptableObject.CreateInstance<State>();
          state.StateName = "" + idCount;
@@ -45,14 +57,24 @@ namespace StateMachine
 
          state.Rectangle = new Rect(position.x, position.y, width, height);
 
-         Init(OnClickRemoveState, OnClickCreateTransition, OnClicked, OnChanged, OnTransitionClicked);
+         Init(OnClickRemoveState, OnClickCreateTransition, OnClicked, OnChanged, OnTransitionClicked, OnClickStartState);
       }
 
-      public StateNode(State state, Action<StateNode> OnClickRemoveState, Action<StateNode> OnClickCreateTransition, Action<StateNode> OnClicked, Action<StateNode> OnChanged, Action<TransitionDataHolder> OnTransitionClicked)
+      /// <summary>
+      /// Used when loading a state from an already created asset
+      /// </summary>
+      /// <param name="state"></param>
+      /// <param name="OnClickRemoveState"></param>
+      /// <param name="OnClickCreateTransition"></param>
+      /// <param name="OnClicked"></param>
+      /// <param name="OnChanged"></param>
+      /// <param name="OnTransitionClicked"></param>
+      /// <param name="OnClickStartState"></param>
+      public StateNode(State state, State selectedState, Action<StateNode> OnClickRemoveState, Action<StateNode> OnClickCreateTransition, Action<StateNode> OnClicked, Action<StateNode> OnChanged, Action<TransitionDataHolder> OnTransitionClicked, Action<StateNode> OnClickStartState)
       {
          this.state = state;
 
-         Init(OnClickRemoveState, OnClickCreateTransition, OnClicked, OnChanged, OnTransitionClicked);
+         Init(OnClickRemoveState, OnClickCreateTransition, OnClicked, OnChanged, OnTransitionClicked, OnClickStartState, selectedState);
       }
 
       /// <summary>
@@ -62,15 +84,24 @@ namespace StateMachine
       /// <param name="OnClickCreateTransition"></param>
       /// <param name="OnClicked"></param>
       /// <param name="OnChanged"></param>
-      public void Init(Action<StateNode> OnClickRemoveState, Action<StateNode> OnClickCreateTransition, Action<StateNode> OnClicked, Action<StateNode> OnChanged, Action<TransitionDataHolder> OnTransitionClicked)
+      public void Init(Action<StateNode> OnClickRemoveState, Action<StateNode> OnClickCreateTransition, Action<StateNode> OnClicked, Action<StateNode> OnChanged, Action<TransitionDataHolder> OnTransitionClicked, Action<StateNode> OnClickStartState, State selectedState = null)
       {
          stateStyle = StateMachineEditor.DefaultStyle;
+         if (selectedState != null)
+         {
+            if(selectedState == state)
+            {
+               stateStyle = StateMachineEditor.StartStyle;
+            }
+         }
+         
          connectedStates = new List<State>();
 
          OnRemoveNode = OnClickRemoveState;
          OnCreateConnection = OnClickCreateTransition;
          Clicked = OnClicked;
          Changed = OnChanged;
+         StartState = OnClickStartState;
 
          stateTransitionInfo = new Dictionary<State, TransitionDataHolder>();
 
@@ -165,7 +196,7 @@ namespace StateMachine
       /// </summary>
       /// <param name="e"></param>
       /// <returns></returns>
-      public bool ProcessEvent(Event e)
+      public bool ProcessEvent(Event e, bool isStartingState)
       {
          switch (e.type)
          {
@@ -177,7 +208,15 @@ namespace StateMachine
                      isDragged = true;
                      GUI.changed = true;
                      isSelected = true;
-                     stateStyle = StateMachineEditor.SelectedStyle;
+                     if(isStartingState)
+                     {
+                        stateStyle = StateMachineEditor.StartSelectedStyle;
+                     }
+                     else
+                     {
+                        stateStyle = StateMachineEditor.SelectedStyle;
+                     }
+                     
                      if (Clicked != null)
                      {
                         Clicked(this);
@@ -187,7 +226,14 @@ namespace StateMachine
                   {
                      GUI.changed = true;
                      isSelected = false;
-                     stateStyle = StateMachineEditor.DefaultStyle;
+                     if (isStartingState)
+                     {
+                        stateStyle = StateMachineEditor.StartStyle;
+                     }
+                     else
+                     {
+                        stateStyle = StateMachineEditor.DefaultStyle;
+                     }
                   }
                }
                if (e.button == 1)
@@ -196,7 +242,15 @@ namespace StateMachine
                   {
                      GUI.changed = true;
                      isSelected = true;
-                     stateStyle = StateMachineEditor.SelectedStyle;
+                     if (isStartingState)
+                     {
+                        stateStyle = StateMachineEditor.StartSelectedStyle;
+                     }
+                     else
+                     {
+                        stateStyle = StateMachineEditor.SelectedStyle;
+                     }
+
                      ProcessContextMenu();
                      e.Use();
                   }
@@ -204,7 +258,14 @@ namespace StateMachine
                   {
                      GUI.changed = true;
                      isSelected = false;
-                     stateStyle = StateMachineEditor.DefaultStyle;
+                     if (isStartingState)
+                     {
+                        stateStyle = StateMachineEditor.StartStyle;
+                     }
+                     else
+                     {
+                        stateStyle = StateMachineEditor.DefaultStyle;
+                     }
                   }
 
                }
@@ -244,6 +305,7 @@ namespace StateMachine
          GenericMenu genericMenu = new GenericMenu();
          genericMenu.AddItem(new GUIContent("Create connection"), false, OnClickCreateConnection);
          genericMenu.AddItem(new GUIContent("Remove node"), false, OnClickRemoveNode);
+         genericMenu.AddItem(new GUIContent("Set as start state"), false, OnSetStartState);
          genericMenu.ShowAsContext();
       }
 
@@ -281,6 +343,22 @@ namespace StateMachine
       }
 
       /// <summary>
+      /// Calls actions when set as the starting state
+      /// </summary>
+      private void OnSetStartState()
+      {
+         if(StartState != null)
+         {
+            StartState(this);
+         }
+      }
+
+      public void SetStyle(GUIStyle style)
+      {
+         stateStyle = style;
+      }
+
+      /// <summary>
       /// Creates a new transition
       /// </summary>
       public void CreateTransition(State endState)
@@ -301,7 +379,6 @@ namespace StateMachine
             stateTransitionInfo[endState].TransitionsForState.Add(transition);
          }
 
-         //UpdateTriangle(endState);
          UpdateTriangleRotation(endState);
       }
 

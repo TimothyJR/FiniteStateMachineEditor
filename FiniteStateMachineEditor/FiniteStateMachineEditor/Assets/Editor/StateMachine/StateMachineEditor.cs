@@ -8,6 +8,7 @@ namespace StateMachine
    public class StateMachineEditor : EditorWindow
    {
       private List<StateNode> states;
+      private StateNode startingState;
 
       private static StateMachine currentSM;
       private static GUIStyle defaultStyle;
@@ -253,7 +254,8 @@ namespace StateMachine
          // Go through nodes backwards since last node is drawn on top
          for (int i = states.Count - 1; i >= 0; i--)
          {
-            bool guiChanged = states[i].ProcessEvent(e);
+
+            bool guiChanged = states[i].ProcessEvent(e, (states[i] == startingState));
 
             if (guiChanged)
             {
@@ -301,7 +303,7 @@ namespace StateMachine
       /// <param name="mousePosition"></param>
       private void OnClickAddState(Vector2 mousePosition)
       {
-         states.Add(new StateNode(mousePosition, 200, 50, OnClickRemoveState, OnStartTransition, OnStateClick, OnStateChange, OnTransitionClicked));
+         states.Add(new StateNode(mousePosition, 200, 50, OnClickRemoveState, OnStartTransition, OnStateClick, OnStateChange, OnTransitionClicked, OnSetStartState));
          states[states.Count - 1].NodeState.hideFlags = HideFlags.HideInHierarchy;
          AssetDatabase.AddObjectToAsset(states[states.Count - 1].NodeState, currentSM);
       }
@@ -362,11 +364,7 @@ namespace StateMachine
       {
          for (int i = 0; i < states.Count; i++)
          {
-            if (states[i] == state)
-            {
-         
-            }
-            else
+            if (states[i] != state)
             {
                for (int j = 0; j < states[i].NodeState.Transitions.Count; j++)
                {
@@ -379,6 +377,22 @@ namespace StateMachine
          }
          states.Remove(state);
          DestroyImmediate(state.NodeState);
+      }
+
+      /// <summary>
+      /// Sets a state as the initial state in the state machine
+      /// </summary>
+      /// <param name="state"></param>
+      private void OnSetStartState(StateNode state)
+      {
+         state.SetStyle(startStyle);
+         if(startingState != null)
+         {
+            startingState.SetStyle(defaultStyle);
+            startingState = state;
+         }
+
+         currentSM.CurrentState = state.NodeState;
       }
 
       /// <summary>
@@ -420,7 +434,13 @@ namespace StateMachine
             {
                if(obj.GetType() == typeof(State))
                {
-                  states.Add(new StateNode((State)obj, OnClickRemoveState, OnStartTransition, OnStateClick, OnStateChange, OnTransitionClicked));
+                  State state = (State)obj;
+                  StateNode newNode = new StateNode(state, currentSM.CurrentState, OnClickRemoveState, OnStartTransition, OnStateClick, OnStateChange, OnTransitionClicked, OnSetStartState);
+                  states.Add(newNode);
+                  if(state == currentSM.CurrentState)
+                  {
+                     startingState = newNode;
+                  }
                }
             }
          }
