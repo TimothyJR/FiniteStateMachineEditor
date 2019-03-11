@@ -1,0 +1,35 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEditor;
+using System;
+
+namespace StateMachine
+{
+   /// <summary>
+   /// Used to change the inspector display of transitions
+   /// </summary>
+   [CustomEditor(typeof(TransitionDataHolder))]
+   public class TransitionDataHolderInSpector : Editor
+   {
+      SerializedProperty transitionList;
+
+      private void OnEnable()
+      {
+         transitionList = serializedObject.FindProperty("transitionsForState");
+      }
+
+      public override void OnInspectorGUI()
+      {
+         TransitionDataHolder transitionData = (TransitionDataHolder)target;
+
+         for (int i = 0; i < transitionData.TransitionsForState.Count; i++)
+         {
+            SerializedProperty listEntry = transitionList.GetArrayElementAtIndex(i);
+            EditorGUILayout.PropertyField(listEntry, true);
+
+            serializedObject.ApplyModifiedProperties();
+         }
+      }
+   }
+}

@@ -6,7 +6,7 @@ using UnityEditor;
 
 namespace StateMachine
 {
-[CreateAssetMenu(menuName = "StateMachine/StateMachine"), System.Serializable]
+   [CreateAssetMenu(menuName = "StateMachine/StateMachine"), System.Serializable]
    public class StateMachine : ScriptableObject
    {
    

@@ -28,6 +28,8 @@ namespace StateMachine
       StateNode transitionEndState;
       bool creatingTransition;
 
+      bool subComponentEventOccured;
+
       public static GUIStyle DefaultStyle
       { get { return defaultStyle; } }
 
@@ -79,7 +81,7 @@ namespace StateMachine
 
          menuBar = new Rect(0, 0, position.width, menuBarHeight);
 
-
+         Selection.activeObject = currentSM;
       }
 
       /// <summary>
@@ -95,11 +97,18 @@ namespace StateMachine
          DrawTransitions();
          DrawConnectionLine(Event.current);
          DrawStateNodes();
+         if(startingState != null)
+         {
+            startingState.DrawStartState();
+         }
+
 
          DrawMenuBar();
 
+         ProcessTransitionEvents(Event.current);
          ProcessStateEvents(Event.current);
          ProcessEvents(Event.current);
+
 
          if (GUI.changed)
          {
@@ -228,6 +237,11 @@ namespace StateMachine
                if(e.button == 0)
                {
                   creatingTransition = false;
+                  if(!subComponentEventOccured)
+                  {
+                     Selection.activeObject = currentSM;
+                  }
+
                }
                else if(e.button == 1)
                {
@@ -250,19 +264,26 @@ namespace StateMachine
       /// <param name="e"></param>
       private void ProcessStateEvents(Event e)
       {
-
          // Go through nodes backwards since last node is drawn on top
          for (int i = states.Count - 1; i >= 0; i--)
          {
 
-            bool guiChanged = states[i].ProcessEvent(e, (states[i] == startingState));
+            bool guiChanged = states[i].ProcessEvent(e);
 
             if (guiChanged)
             {
                GUI.changed = true;
             }
          }
+      }
 
+      private void ProcessTransitionEvents(Event e)
+      {
+         subComponentEventOccured = false;
+         for (int i = 0; i < states.Count; i++)
+         {
+            states[i].ProcessTransitionEvents(e);
+         }
       }
 
       /// <summary>
@@ -326,7 +347,8 @@ namespace StateMachine
       {
          if(!creatingTransition)
          {
-            // Bring up state info in inspector
+            Selection.activeObject = state.NodeState;
+            subComponentEventOccured = true;
          }
          else
          {
@@ -376,7 +398,7 @@ namespace StateMachine
             }
          }
          states.Remove(state);
-         DestroyImmediate(state.NodeState);
+         DestroyImmediate(state.NodeState, true);
       }
 
       /// <summary>
@@ -416,7 +438,8 @@ namespace StateMachine
       /// <param name="transitions"></param>
       private void OnTransitionClicked(TransitionDataHolder transitions)
       {
-
+         Selection.activeObject = transitions;
+         subComponentEventOccured = true;
       }
 
       /// <summary>
@@ -432,14 +455,17 @@ namespace StateMachine
 
             foreach (Object obj in assets)
             {
-               if(obj.GetType() == typeof(State))
+               if(obj != null)
                {
-                  State state = (State)obj;
-                  StateNode newNode = new StateNode(state, currentSM.CurrentState, OnClickRemoveState, OnStartTransition, OnStateClick, OnStateChange, OnTransitionClicked, OnSetStartState);
-                  states.Add(newNode);
-                  if(state == currentSM.CurrentState)
+                  if (obj.GetType() == typeof(State))
                   {
-                     startingState = newNode;
+                     State state = (State)obj;
+                     StateNode newNode = new StateNode(state, OnClickRemoveState, OnStartTransition, OnStateClick, OnStateChange, OnTransitionClicked, OnSetStartState);
+                     states.Add(newNode);
+                     if (state == currentSM.CurrentState)
+                     {
+                        startingState = newNode;
+                     }
                   }
                }
             }

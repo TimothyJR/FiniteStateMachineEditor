@@ -10,7 +10,7 @@ namespace StateMachine
    public class Transition
    {
       [SerializeField] private TransitionDecision[] decision;
-      [SerializeField] private State nextState;
+      [SerializeField, HideInInspector] private State nextState;
 
 
       public Transition(State state)
@@ -39,5 +39,4 @@ namespace StateMachine
       }
       public State NextState { get { return nextState; } }
    }
-
 }
