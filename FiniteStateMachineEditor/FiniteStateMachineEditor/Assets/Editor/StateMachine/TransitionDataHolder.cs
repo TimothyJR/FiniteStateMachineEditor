@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEditor;
 using System;
 
+
 namespace StateMachine
 {
    /// <summary>
@@ -12,10 +13,12 @@ namespace StateMachine
    [SerializeField]
    public class TransitionDataHolder : ScriptableObject
    {
-      private float rotation;
       [SerializeField] private List<Transition> transitionsForState;
+      private float rotation;
       private Rect clickableArea;
-      bool selected;
+      private bool selected;
+      private Action<TransitionDataHolder> OnRemove;
+      private Action<Transition, TransitionDataHolder> OnRemoveIndividual;
 
       public float Rotation
       {
@@ -39,6 +42,18 @@ namespace StateMachine
       {
          get { return selected; }
          set { selected = value; }
+      }
+
+      public Action<TransitionDataHolder> RemoveAction
+      { get { return OnRemove; } }
+
+      public Action<Transition, TransitionDataHolder> RemoveIndividualAction
+      { get { return OnRemoveIndividual; } }
+
+      public void Init(Action<TransitionDataHolder> removal, Action<Transition, TransitionDataHolder> removalIndividual)
+      {
+         OnRemove = removal;
+         OnRemoveIndividual = removalIndividual;
       }
    }
 }

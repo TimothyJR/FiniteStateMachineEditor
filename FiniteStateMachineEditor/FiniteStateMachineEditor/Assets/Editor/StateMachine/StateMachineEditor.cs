@@ -18,8 +18,8 @@ namespace StateMachine
 
       private Vector2 offset;
       private Vector2 drag;
-      private float previousWidth;
-      private float previousHeight;
+      private static float previousWidth;
+      private static float previousHeight;
 
       private Rect menuBar;
       private float menuBarHeight = 20.0f;
@@ -41,6 +41,12 @@ namespace StateMachine
 
       public static GUIStyle StartSelectedStyle
       { get { return startSelectedStyle; } }
+
+      public static float EditorWidth
+      { get { return previousWidth; } }
+
+      public static float EditorHeight
+      { get { return previousHeight; } }
 
       /// <summary>
       /// Opens a StateMachine scriptable object when it is double clicked in inspector
@@ -128,11 +134,10 @@ namespace StateMachine
             previousWidth = position.width;
          }
 
-         // Use this if there is a need for something to change with the height
-         //if (position.height != previousHeight)
-         //{
-         //   previousHeight = position.height;
-         //}
+         if (position.height != previousHeight)
+         {
+            previousHeight = position.height;
+         }
       }
 
 

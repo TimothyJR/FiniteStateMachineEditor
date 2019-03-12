@@ -105,6 +105,7 @@ namespace StateMachine
             {
                connectedStates.Add(state.Transitions[i].NextState);
                TransitionDataHolder t = ScriptableObject.CreateInstance<TransitionDataHolder>();
+               t.Init(RemoveTransition, RemoveTransitionFromInspector);
                t.TransitionsForState = new List<Transition>();
                t.TransitionsForState.Add(state.Transitions[i]);
                stateTransitionInfo.Add(state.Transitions[i].NextState, t);
@@ -179,11 +180,11 @@ namespace StateMachine
             if (stateTransitionInfo[connectedStates[i]].Selected)
             {
                Color highlightColor = new Color(0.3f, 0.3f, 1.0f, 0.3f);
-               EditorDraw.DrawLine(state.Rectangle.center, connectedStates[i].Rectangle.center, highlightColor, 8);
+               EditorDraw.DrawLineInEditorBounds(state.Rectangle.center, connectedStates[i].Rectangle.center, highlightColor, 8, StateMachineEditor.EditorWidth, StateMachineEditor.EditorHeight);
                EditorDraw.DrawTriangle(trianglePosition, stateTransitionInfo[connectedStates[i]].Rotation, highlightColor, 6);
             }
 
-            EditorDraw.DrawLine(state.Rectangle.center, connectedStates[i].Rectangle.center, Color.white, 5);
+            EditorDraw.DrawLineInEditorBounds(state.Rectangle.center, connectedStates[i].Rectangle.center, Color.white, 5, StateMachineEditor.EditorWidth, StateMachineEditor.EditorHeight);
             EditorDraw.DrawTriangle(trianglePosition, stateTransitionInfo[connectedStates[i]].Rotation, Color.white, 5);
          }
       }
@@ -379,7 +380,8 @@ namespace StateMachine
          if (!connectedStates.Contains(endState))
          {
             connectedStates.Add(endState);
-            TransitionDataHolder t = new TransitionDataHolder();
+            TransitionDataHolder t = ScriptableObject.CreateInstance<TransitionDataHolder>();
+            t.Init(RemoveTransition, RemoveTransitionFromInspector);
             t.TransitionsForState = new List<Transition>();
             t.TransitionsForState.Add(transition);
             stateTransitionInfo.Add(endState, t);
@@ -404,9 +406,13 @@ namespace StateMachine
          {
             state.Transitions.Remove(transition.TransitionsForState[i]);
          }
-
       }
 
+      /// <summary>
+      /// Removes a state that this state transitioned into
+      /// </summary>
+      /// <param name="state"></param>
+      /// <param name="transition"></param>
       public void RemoveConnectedState(State state, Transition transition)
       {
          if(stateTransitionInfo.ContainsKey(state))
@@ -416,6 +422,16 @@ namespace StateMachine
          this.state.Transitions.Remove(transition);
          connectedStates.Remove(state);
          
+      }
+
+      /// <summary>
+      /// Used to remove transition to a state from the transition data holder inspector
+      /// </summary>
+      /// <param name="transition"></param>
+      private void RemoveTransitionFromInspector(Transition transition, TransitionDataHolder transitionData)
+      {
+         state.Transitions.Remove(transition);
+         transitionData.TransitionsForState.Remove(transition);
       }
    }
 }
