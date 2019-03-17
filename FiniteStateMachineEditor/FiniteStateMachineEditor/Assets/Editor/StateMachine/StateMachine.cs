@@ -11,11 +11,25 @@ namespace StateMachine
    {
    
       [SerializeField] private State currentState;
+      [SerializeField, HideInInspector] private State anyState; 
+      [SerializeField, HideInInspector] private Vector2 graphOffset = new Vector2(0,0);
 
       public State CurrentState
       {
          get { return currentState; }
          set { currentState = value; }
+      }
+
+      public State AnyState
+      {
+         get { return anyState; }
+         set { anyState = value; }
+      }
+
+      public Vector2 GraphOffset
+      {
+         get { return graphOffset; }
+         set { graphOffset = value; }
       }
 
       /// <summary>

@@ -43,7 +43,7 @@ namespace StateMachine
       /// Called everytime the state machine tick is called
       /// </summary>
       /// <param name="stateMachine"></param>
-      public void UpdateState(StateMachine stateMachine)
+      public virtual void UpdateState(StateMachine stateMachine)
       {
          DoActions();
          CheckTransitions(stateMachine);
@@ -82,7 +82,7 @@ namespace StateMachine
       /// <summary>
       /// Actions to be done during update
       /// </summary>
-      public void DoActions()
+      private void DoActions()
       {
          for (int i = 0; i < actions.Length; i++)
          {
@@ -93,7 +93,7 @@ namespace StateMachine
       /// <summary>
       /// Actions to be done during fixed update
       /// </summary>
-      public void DoFixedActions()
+      private void DoFixedActions()
       {
          for (int i = 0; i < fixedActions.Length; i++)
          {
@@ -105,7 +105,7 @@ namespace StateMachine
       /// Check conditions for moving into other states
       /// </summary>
       /// <param name="stateMachine"></param>
-      public void CheckTransitions(StateMachine stateMachine)
+      protected void CheckTransitions(StateMachine stateMachine)
       {
          for (int i = 0; i < transitions.Count; i++)
          {

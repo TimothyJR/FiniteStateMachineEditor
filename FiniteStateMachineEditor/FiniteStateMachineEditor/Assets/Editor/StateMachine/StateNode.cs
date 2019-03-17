@@ -8,7 +8,6 @@ namespace StateMachine
 {
    public class StateNode
    {
-      static int idCount = 0;
       private State state;
       private GUIStyle stateStyle;
 
@@ -26,6 +25,7 @@ namespace StateMachine
       // Transition related
       Dictionary<State, TransitionDataHolder> stateTransitionInfo;
       Vector2 transitionClickableSize;
+      float twoWayTransitionOffset;
 
       public State NodeState
       {
@@ -52,8 +52,7 @@ namespace StateMachine
       public StateNode(Vector2 position, float width, float height, Action<StateNode> OnClickRemoveState, Action<StateNode> OnClickCreateTransition, Action<StateNode> OnClicked, Action<StateNode> OnChanged, Action<TransitionDataHolder> OnTransitionClicked, Action<StateNode> OnClickStartState)
       {
          state = ScriptableObject.CreateInstance<State>();
-         state.StateName = "" + idCount;
-         idCount += 1;
+         state.StateName = "New State";
 
          state.Rectangle = new Rect(position.x, position.y, width, height);
 
@@ -98,24 +97,7 @@ namespace StateMachine
          this.OnTransitionClicked = OnTransitionClicked;
          stateTransitionInfo = new Dictionary<State, TransitionDataHolder>();
          transitionClickableSize = new Vector2(20.0f, 20.0f);
-
-         for (int i = 0; i < state.Transitions.Count; i++)
-         {
-            if (!connectedStates.Contains(state.Transitions[i].NextState))
-            {
-               connectedStates.Add(state.Transitions[i].NextState);
-               TransitionDataHolder t = ScriptableObject.CreateInstance<TransitionDataHolder>();
-               t.Init(RemoveTransition, RemoveTransitionFromInspector);
-               t.TransitionsForState = new List<Transition>();
-               t.TransitionsForState.Add(state.Transitions[i]);
-               stateTransitionInfo.Add(state.Transitions[i].NextState, t);
-               UpdateTriangleRotation(state.Transitions[i].NextState);
-            }
-            else
-            {
-               stateTransitionInfo[state.Transitions[i].NextState].TransitionsForState.Add(state.Transitions[i]);
-            }
-         }
+         twoWayTransitionOffset = 10.0f;
       }
 
       /// <summary>
@@ -126,20 +108,15 @@ namespace StateMachine
       {
          if (connectedStates.Contains(changedState))
          {
-            float rotation = Vector2.SignedAngle(new Vector2(0, -1.0f), changedState.Rectangle.center - state.Rectangle.center);
-            stateTransitionInfo[changedState].Rotation = rotation;
-            stateTransitionInfo[changedState].ClickableArea = new Rect(((state.Rectangle.center + changedState.Rectangle.center) / 2) - (transitionClickableSize / 2), transitionClickableSize);
+            stateTransitionInfo[changedState].UpdateTrianglePosition(changedState.Rectangle.center, state.Rectangle.center, transitionClickableSize, twoWayTransitionOffset);
          }
          else if (state == changedState)
          {
             for (int i = 0; i < connectedStates.Count; i++)
             {
-               float rotation = Vector2.SignedAngle(new Vector2(0, -1.0f), connectedStates[i].Rectangle.center - changedState.Rectangle.center);
-               stateTransitionInfo[connectedStates[i]].Rotation = rotation;
-               stateTransitionInfo[connectedStates[i]].ClickableArea = new Rect(((changedState.Rectangle.center + connectedStates[i].Rectangle.center) / 2) - (transitionClickableSize / 2), transitionClickableSize);
+               stateTransitionInfo[connectedStates[i]].UpdateTrianglePosition(connectedStates[i].Rectangle.center, state.Rectangle.center, transitionClickableSize, twoWayTransitionOffset);
             }
          }
-
       }
 
       /// <summary>
@@ -170,22 +147,30 @@ namespace StateMachine
       }
 
       /// <summary>
+      /// Draw a node using the AnyState style
+      /// </summary>
+      public void DrawAnyState()
+      {
+         GUI.skin.label.alignment = TextAnchor.MiddleCenter;
+         if (stateStyle == StateMachineEditor.SelectedStyle)
+         {
+            GUI.Box(state.Rectangle, "", StateMachineEditor.AnyStateSelectedStyle);
+         }
+         else if (stateStyle == StateMachineEditor.DefaultStyle)
+         {
+            GUI.Box(state.Rectangle, "", StateMachineEditor.AnyStateStyle);
+         }
+         GUI.Label(state.Rectangle, state.StateName);
+      }
+
+      /// <summary>
       /// Draws a line from the inpoint to the outpoint
       /// </summary>
       public void DrawTransitions()
       {
          for (int i = 0; i < connectedStates.Count; i++)
          {
-            Vector2 trianglePosition = (state.Rectangle.center + connectedStates[i].Rectangle.center) / 2;
-            if (stateTransitionInfo[connectedStates[i]].Selected)
-            {
-               Color highlightColor = new Color(0.3f, 0.3f, 1.0f, 0.3f);
-               EditorDraw.DrawLineInEditorBounds(state.Rectangle.center, connectedStates[i].Rectangle.center, highlightColor, 8, StateMachineEditor.EditorWidth, StateMachineEditor.EditorHeight);
-               EditorDraw.DrawTriangle(trianglePosition, stateTransitionInfo[connectedStates[i]].Rotation, highlightColor, 6);
-            }
-
-            EditorDraw.DrawLineInEditorBounds(state.Rectangle.center, connectedStates[i].Rectangle.center, Color.white, 5, StateMachineEditor.EditorWidth, StateMachineEditor.EditorHeight);
-            EditorDraw.DrawTriangle(trianglePosition, stateTransitionInfo[connectedStates[i]].Rotation, Color.white, 5);
+            stateTransitionInfo[connectedStates[i]].DrawTransition(state.Rectangle.center, connectedStates[i].Rectangle.center);
          }
       }
 
@@ -309,7 +294,10 @@ namespace StateMachine
          GenericMenu genericMenu = new GenericMenu();
          genericMenu.AddItem(new GUIContent("Create connection"), false, OnClickCreateConnection);
          genericMenu.AddItem(new GUIContent("Remove node"), false, OnClickRemoveNode);
-         genericMenu.AddItem(new GUIContent("Set as start state"), false, OnSetStartState);
+         if(StartState != null)
+         {
+            genericMenu.AddItem(new GUIContent("Set as start state"), false, OnSetStartState);
+         }
          genericMenu.ShowAsContext();
       }
 
@@ -358,10 +346,7 @@ namespace StateMachine
       /// </summary>
       private void OnSetStartState()
       {
-         if (StartState != null)
-         {
-            StartState(this);
-         }
+         StartState(this);
       }
 
       public void SetStyle(GUIStyle style)
@@ -372,26 +357,46 @@ namespace StateMachine
       /// <summary>
       /// Creates a new transition
       /// </summary>
-      public void CreateTransition(State endState)
+      public void CreateTransition(StateNode endState)
       {
-         Transition transition = new Transition(endState);
+         Transition transition = new Transition(endState.state);
          state.Transitions.Add(transition);
+         AddTransition(endState, transition);
+      }
 
-         if (!connectedStates.Contains(endState))
+      public void LoadTransition(StateNode endState, Transition transition)
+      {
+         AddTransition(endState, transition);
+      }
+
+      private void AddTransition(StateNode endState, Transition transition)
+      {
+         if (!connectedStates.Contains(endState.state))
          {
-            connectedStates.Add(endState);
+            connectedStates.Add(endState.state);
             TransitionDataHolder t = ScriptableObject.CreateInstance<TransitionDataHolder>();
             t.Init(RemoveTransition, RemoveTransitionFromInspector);
             t.TransitionsForState = new List<Transition>();
             t.TransitionsForState.Add(transition);
-            stateTransitionInfo.Add(endState, t);
+
+            // If the other state transitions to this one, it needs to be two ways
+            if (endState.connectedStates.Contains(state))
+            {
+               t.TwoWayTransition = true;
+               endState.stateTransitionInfo[state].TwoWayTransition = true;
+               t.OtherWayTransition = endState.stateTransitionInfo[state];
+               endState.stateTransitionInfo[state].OtherWayTransition = t;
+               endState.UpdateTriangleRotation(state);
+            }
+
+            stateTransitionInfo.Add(endState.state, t);
          }
          else
          {
-            stateTransitionInfo[endState].TransitionsForState.Add(transition);
+            stateTransitionInfo[endState.state].TransitionsForState.Add(transition);
          }
 
-         UpdateTriangleRotation(endState);
+         UpdateTriangleRotation(endState.state);
       }
 
       /// <summary>
@@ -400,9 +405,14 @@ namespace StateMachine
       /// <param name="transitionToRemove"></param>
       public void RemoveTransition(TransitionDataHolder transition)
       {
+         transition.OtherWayTransition.TwoWayTransition = false;
+         transition.OtherWayTransition.OtherWayTransition = null;
+         transition.OtherWayTransition.UpdateTrianglePosition(transition.TransitionsForState[0].NextState.Rectangle.center, state.Rectangle.center, transitionClickableSize, twoWayTransitionOffset);
+
          stateTransitionInfo.Remove(transition.TransitionsForState[0].NextState);
          connectedStates.Remove(transition.TransitionsForState[0].NextState);
-         for(int i = 0; i < transition.TransitionsForState.Count; i++)
+
+         for (int i = 0; i < transition.TransitionsForState.Count; i++)
          {
             state.Transitions.Remove(transition.TransitionsForState[i]);
          }

@@ -61,6 +61,11 @@ namespace StateMachine
          // So move to a point along the line within the bounds.
          if(pointA.x > boundsX)
          {
+            if(pointB.x > boundsX)
+            {
+               return;
+            }
+
             float slope = (pointA.y - pointB.y) / (pointA.x - pointB.x);
             // b = y - m * x
             float b = pointA.y - slope * pointA.x;
@@ -71,6 +76,11 @@ namespace StateMachine
          }
          else if(pointA.x < 0)
          {
+            if (pointA.x < 0)
+            {
+               return;
+            }
+
             float slope = (pointA.y - pointB.y) / (pointA.x - pointB.x);
             // b = y - m * x
             float b = pointA.y - slope * pointA.x;
@@ -81,6 +91,11 @@ namespace StateMachine
 
          if(pointA.y > boundsY)
          {
+            if(pointB.y > boundsY)
+            {
+               return;
+            }
+
             float slope = (pointA.y - pointB.y) / (pointA.x - pointB.x);
             // b = y - m * x
             float b = pointA.y - slope * pointA.x;
@@ -90,6 +105,11 @@ namespace StateMachine
          }
          else if(pointA.y < 0)
          {
+            if(pointB.y < 0)
+            {
+               return;
+            }
+
             float slope = (pointA.y - pointB.y) / (pointA.x - pointB.x);
             // b = y - m * x
             float b = pointA.y - slope * pointA.x;

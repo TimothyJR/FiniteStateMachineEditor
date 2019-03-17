@@ -9,20 +9,24 @@ namespace StateMachine
    {
       private List<StateNode> states;
       private StateNode startingState;
+      private StateNode anyStateNode;
 
       private static StateMachine currentSM;
       private static GUIStyle defaultStyle;
       private static GUIStyle selectedStyle;
       private static GUIStyle startStyle;
       private static GUIStyle startSelectedStyle;
+      private static GUIStyle anyStateStyle;
+      private static GUIStyle anyStateSelectedStyle;
 
-      private Vector2 offset;
       private Vector2 drag;
       private static float previousWidth;
       private static float previousHeight;
 
       private Rect menuBar;
       private float menuBarHeight = 20.0f;
+      private float nodeWidth = 200.0f;
+      private float nodeHeight = 50.0f;
 
       StateNode transitionStartState;
       StateNode transitionEndState;
@@ -41,6 +45,12 @@ namespace StateMachine
 
       public static GUIStyle StartSelectedStyle
       { get { return startSelectedStyle; } }
+
+      public static GUIStyle AnyStateStyle
+      { get { return anyStateStyle; } }
+
+      public static GUIStyle AnyStateSelectedStyle
+      { get { return anyStateSelectedStyle; } }
 
       public static float EditorWidth
       { get { return previousWidth; } }
@@ -83,6 +93,14 @@ namespace StateMachine
          startSelectedStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/node2 on.png") as Texture2D;
          startSelectedStyle.border = new RectOffset(12, 12, 12, 12);
 
+         anyStateStyle = new GUIStyle();
+         anyStateStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/node5.png") as Texture2D;
+         anyStateStyle.border = new RectOffset(12, 12, 12, 12);
+
+         anyStateSelectedStyle = new GUIStyle();
+         anyStateSelectedStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/node5 on.png") as Texture2D;
+         anyStateSelectedStyle.border = new RectOffset(12, 12, 12, 12);
+
          LoadGraph();
 
          menuBar = new Rect(0, 0, position.width, menuBarHeight);
@@ -103,10 +121,7 @@ namespace StateMachine
          DrawTransitions();
          DrawConnectionLine(Event.current);
          DrawStateNodes();
-         if(startingState != null)
-         {
-            startingState.DrawStartState();
-         }
+         
 
 
          DrawMenuBar();
@@ -155,8 +170,8 @@ namespace StateMachine
          Handles.BeginGUI();
          Handles.color = new Color(gridColor.r, gridColor.g, gridColor.b, gridOpacity);
 
-         offset += drag * 0.5f;
-         Vector3 newOffset = new Vector3(offset.x % gridSpacing, offset.y % gridSpacing, 0);
+         currentSM.GraphOffset += drag * 0.5f;
+         Vector3 newOffset = new Vector3(currentSM.GraphOffset.x % gridSpacing, currentSM.GraphOffset.y % gridSpacing, 0);
 
          for (int i = 0; i < widthDivisions; i++)
          {
@@ -200,6 +215,16 @@ namespace StateMachine
          {
             states[i].Draw();
          }
+
+         if(anyStateNode != null)
+         {
+            anyStateNode.DrawAnyState();
+         }
+
+         if (startingState != null)
+         {
+            startingState.DrawStartState();
+         }
       }
 
       /// <summary>
@@ -214,6 +239,10 @@ namespace StateMachine
             states[i].DrawTransitions();
          }
 
+         if(anyStateNode != null)
+         {
+            anyStateNode.DrawTransitions();
+         }
       }
 
       /// <summary>
@@ -269,11 +298,22 @@ namespace StateMachine
       /// <param name="e"></param>
       private void ProcessStateEvents(Event e)
       {
+         bool guiChanged;
          // Go through nodes backwards since last node is drawn on top
          for (int i = states.Count - 1; i >= 0; i--)
          {
 
-            bool guiChanged = states[i].ProcessEvent(e);
+            guiChanged = states[i].ProcessEvent(e);
+
+            if (guiChanged)
+            {
+               GUI.changed = true;
+            }
+         }
+
+         if(anyStateNode != null)
+         {
+            guiChanged = anyStateNode.ProcessEvent(e);
 
             if (guiChanged)
             {
@@ -310,6 +350,12 @@ namespace StateMachine
          {
             states[i].UpdateTriangleRotation(states[i].NodeState);
          }
+
+         if(anyStateNode != null)
+         {
+            anyStateNode.DragState(delta);
+            anyStateNode.UpdateTriangleRotation(anyStateNode.NodeState);
+         }
       }
 
       /// <summary>
@@ -320,6 +366,12 @@ namespace StateMachine
       {
          GenericMenu genericMenu = new GenericMenu();
          genericMenu.AddItem(new GUIContent("Add node"), false, () => OnClickAddState(mousePosition));
+         genericMenu.AddItem(new GUIContent("Go to graph origin"), false, ResetOffset);
+         if (currentSM.AnyState == null)
+         {
+            genericMenu.AddItem(new GUIContent("Add Any State Node"), false, () => CreateAnyState(mousePosition));
+         }
+
          genericMenu.ShowAsContext();
       }
 
@@ -329,9 +381,31 @@ namespace StateMachine
       /// <param name="mousePosition"></param>
       private void OnClickAddState(Vector2 mousePosition)
       {
-         states.Add(new StateNode(mousePosition, 200, 50, OnClickRemoveState, OnStartTransition, OnStateClick, OnStateChange, OnTransitionClicked, OnSetStartState));
+         states.Add(new StateNode(mousePosition, nodeWidth, nodeHeight, OnClickRemoveState, OnStartTransition, OnStateClick, OnStateChange, OnTransitionClicked, OnSetStartState));
          states[states.Count - 1].NodeState.hideFlags = HideFlags.HideInHierarchy;
          AssetDatabase.AddObjectToAsset(states[states.Count - 1].NodeState, currentSM);
+      }
+
+      /// <summary>
+      /// Brings the graph back to the origin
+      /// </summary>
+      private void ResetOffset()
+      {
+         OnDrag(-currentSM.GraphOffset);
+      }
+
+      /// <summary>
+      /// Create a state that has transitions that are checked regardless of which state you are in
+      /// </summary>
+      /// <param name="mousePosition"></param>
+      private void CreateAnyState(Vector2 mousePosition)
+      {
+         AnyState anyState = ScriptableObject.CreateInstance<AnyState>();
+         anyState.StateName = "Any State";
+         anyState.Rectangle = new Rect(mousePosition.x, mousePosition.y, nodeWidth, nodeHeight);
+
+         anyStateNode = new StateNode(anyState, OnClickRemoveState, OnStartTransition, OnStateClick, OnStateChange, OnTransitionClicked, null);
+         currentSM.AnyState = anyState;
       }
 
       /// <summary>
@@ -360,8 +434,15 @@ namespace StateMachine
             transitionEndState = state;
             if (transitionEndState != transitionStartState)
             {
-               CreateConnection();
-               ClearConnectionSelection();
+               if(transitionEndState != anyStateNode)
+               {
+                  CreateConnection();
+                  ClearConnectionSelection();
+               }
+               else
+               {
+                  ClearConnectionSelection();
+               }
             }
          }
       }
@@ -371,7 +452,7 @@ namespace StateMachine
       /// </summary>
       private void CreateConnection()
       {
-         transitionStartState.CreateTransition(transitionEndState.NodeState);
+         transitionStartState.CreateTransition(transitionEndState);
       }
 
       /// <summary>
@@ -435,6 +516,11 @@ namespace StateMachine
                states[i].UpdateTriangleRotation(state.NodeState);
             }
          }
+
+         if(anyStateNode != null)
+         {
+            anyStateNode.UpdateTriangleRotation(state.NodeState);
+         }
       }
 
       /// <summary>
@@ -457,6 +543,7 @@ namespace StateMachine
          {
             // Load data
             Object[] assets = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(currentSM));
+            Dictionary<State, StateNode> stateToNodeRelation = new Dictionary<State, StateNode>();
 
             foreach (Object obj in assets)
             {
@@ -464,14 +551,35 @@ namespace StateMachine
                {
                   if (obj.GetType() == typeof(State))
                   {
+                     // Create all the states
                      State state = (State)obj;
                      StateNode newNode = new StateNode(state, OnClickRemoveState, OnStartTransition, OnStateClick, OnStateChange, OnTransitionClicked, OnSetStartState);
                      states.Add(newNode);
+                     stateToNodeRelation.Add(state, newNode);
                      if (state == currentSM.CurrentState)
                      {
                         startingState = newNode;
                      }
+
                   }
+               }
+            }
+
+            if(currentSM.AnyState != null)
+            {
+               anyStateNode = new StateNode(currentSM.AnyState, OnClickRemoveState, OnStartTransition, OnStateClick, OnStateChange, OnTransitionClicked, null);
+               for(int i = 0; i < currentSM.AnyState.Transitions.Count; i++)
+               {
+                  anyStateNode.LoadTransition(stateToNodeRelation[currentSM.AnyState.Transitions[i].NextState], currentSM.AnyState.Transitions[i]);
+               }
+            }
+
+            // Create all the transitions
+            for(int i = 0; i < states.Count; i++)
+            {
+               for(int j = 0; j < states[i].NodeState.Transitions.Count; j++)
+               {
+                  states[i].LoadTransition(stateToNodeRelation[states[i].NodeState.Transitions[j].NextState], states[i].NodeState.Transitions[j]);
                }
             }
          }
