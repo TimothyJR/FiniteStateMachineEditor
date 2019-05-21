@@ -4,11 +4,11 @@ using UnityEngine;
 
 namespace StateMachine
 {
-   public class AnyState : State
-   {
-      public override void UpdateState(StateMachine stateMachine)
-      {
-         CheckTransitions(stateMachine);
-      }
-   }
+	public class AnyState : State
+	{
+		public override void UpdateState(StateMachine stateMachine)
+		{
+			CheckTransitions(stateMachine);
+		}
+	}
 }

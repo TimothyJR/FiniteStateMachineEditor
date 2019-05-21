@@ -4,15 +4,15 @@ using UnityEngine;
 
 namespace StateMachine
 {
-   /// <summary>
-   /// These are actions done by states
-   /// Each state can have multiple actions
-   /// </summary>
-   [CreateAssetMenu(menuName = "StateMachine/Action"), System.Serializable]
-   public abstract class Action : ScriptableObject
-   {
-      public abstract void Act();
-      public abstract void ActEnter();
-      public abstract void ActExit();
-   }
+	/// <summary>
+	/// These are actions done by states
+	/// Each state can have multiple actions
+	/// </summary>
+	[CreateAssetMenu(menuName = "StateMachine/Action"), System.Serializable]
+	public abstract class Action : ScriptableObject
+	{
+		public abstract void Act();
+		public abstract void ActEnter();
+		public abstract void ActExit();
+	}
 }
