@@ -8,7 +8,7 @@ namespace StateMachine
 	/// These are actions done by states
 	/// Each state can have multiple actions
 	/// </summary>
-	[CreateAssetMenu(menuName = "StateMachine/Action"), System.Serializable]
+	[System.Serializable]
 	public abstract class Action : ScriptableObject
 	{
 		public abstract void Act();

@@ -1,8 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor.Callbacks;
-using UnityEditor;
 
 namespace StateMachine
 {
@@ -68,25 +66,6 @@ namespace StateMachine
 				currentState = nextState;
 				currentState.OnStateEnter();
 			}
-		}
-
-		/// <summary>
-		/// Opens the scriptable object with the editor
-		/// </summary>
-		/// <param name="instanceID"></param>
-		/// <param name="line"></param>
-		/// <returns></returns>
-		[OnOpenAsset]
-		public static bool PullUpNodeEditor(int instanceID, int line)
-		{
-			StateMachine stateMachine = EditorUtility.InstanceIDToObject(instanceID) as StateMachine;
-			if (stateMachine != null)
-			{
-				StateMachineEditor.OpenWindow(stateMachine);
-				return true;
-			}
-
-			return false;
 		}
 	}
 }

@@ -8,7 +8,7 @@ namespace StateMachine
 	/// These are the logic for transfering between states.
 	/// Each transition can require multiple decisions.
 	/// </summary>
-	[CreateAssetMenu(menuName = "StateMachine/TransitionDecision"), System.Serializable]
+	[System.Serializable]
 	public abstract class TransitionDecision : ScriptableObject
 	{
 		public abstract bool Decide();

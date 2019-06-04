@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.Callbacks;
 
 namespace StateMachine
 {
@@ -591,6 +592,25 @@ namespace StateMachine
 		private void Save()
 		{
 			AssetDatabase.SaveAssets();
+		}
+
+		/// <summary>
+		/// Opens the scriptable object with the editor
+		/// </summary>
+		/// <param name="instanceID"></param>
+		/// <param name="line"></param>
+		/// <returns></returns>
+		[OnOpenAsset]
+		public static bool PullUpNodeEditor(int instanceID, int line)
+		{
+			StateMachine stateMachine = EditorUtility.InstanceIDToObject(instanceID) as StateMachine;
+			if (stateMachine != null)
+			{
+				StateMachineEditor.OpenWindow(stateMachine);
+				return true;
+			}
+
+			return false;
 		}
 	}
 }
