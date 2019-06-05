@@ -11,6 +11,7 @@ namespace StateMachine
 		[SerializeField] private State currentState;
 		[SerializeField, HideInInspector] private State anyState; 
 		[SerializeField, HideInInspector] private Vector2 graphOffset = new Vector2(0,0);
+		private GameObject machineHolder;
 
 		public State CurrentState
 		{
@@ -33,9 +34,10 @@ namespace StateMachine
 		/// <summary>
 		/// Initialize the state machine
 		/// </summary>
-		public void Init()
+		public void Init(GameObject owner)
 		{
-			currentState.OnStateEnter();
+			machineHolder = owner;
+			currentState.OnStateEnter(machineHolder);
 		}
  
 		/// <summary>
@@ -64,7 +66,7 @@ namespace StateMachine
 			{
 				currentState.OnStateExit();
 				currentState = nextState;
-				currentState.OnStateEnter();
+				currentState.OnStateEnter(machineHolder);
 			}
 		}
 	}

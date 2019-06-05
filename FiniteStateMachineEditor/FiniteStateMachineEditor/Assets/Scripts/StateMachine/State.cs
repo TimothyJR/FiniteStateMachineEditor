@@ -60,11 +60,11 @@ namespace StateMachine
 		/// <summary>
 		/// Called when the state is first transitioned to
 		/// </summary>
-		public void OnStateEnter()
+		public void OnStateEnter(GameObject owner)
 		{
 			for (int i = 0; i < actions.Length; i++)
 			{
-				actions[i].ActEnter();
+				actions[i].ActEnter(owner);
 			}
 		}
 

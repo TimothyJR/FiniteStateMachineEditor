@@ -12,7 +12,7 @@ namespace StateMachine
 	public abstract class Action : ScriptableObject
 	{
 		public abstract void Act();
-		public abstract void ActEnter();
+		public abstract void ActEnter(GameObject owner);
 		public abstract void ActExit();
 	}
 }
