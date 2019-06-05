@@ -11,7 +11,6 @@ namespace StateMachine
 	{
 		[SerializeField] private string stateName;
 		[SerializeField] private Action[] actions;
-		[SerializeField] private Action[] fixedActions;
 		[SerializeField, HideInInspector] private List<Transition> transitions;
 		[SerializeField, HideInInspector] private Rect rectangle;
 
@@ -95,9 +94,9 @@ namespace StateMachine
 		/// </summary>
 		private void DoFixedActions()
 		{
-			for (int i = 0; i < fixedActions.Length; i++)
+			for (int i = 0; i < actions.Length; i++)
 			{
-				fixedActions[i].Act();
+				actions[i].FixedAct();
 			}
 		}
 
