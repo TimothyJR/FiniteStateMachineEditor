@@ -45,7 +45,7 @@ namespace StateMachine
 		/// </summary>
 		public void Tick()
 		{
-			currentState.UpdateState(this);
+			currentState.UpdateState(this, machineHolder);
 		}
  
 		/// <summary>

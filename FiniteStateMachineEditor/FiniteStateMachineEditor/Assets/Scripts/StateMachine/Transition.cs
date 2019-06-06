@@ -17,26 +17,24 @@ namespace StateMachine
 		{
 			nextState = state;
 		}
+		public State NextState { get { return nextState; } }
 
 		/// <summary>
 		/// Returns true if a transition condition is met
 		/// </summary>
-		public bool Transitioning
+		public bool Transitioning(GameObject owner)
 		{
-			get
+			bool transition = true;
+			for (int i = 0; i < decision.Length; i++)
 			{
-				bool transition = true;
-				for (int i = 0; i < decision.Length; i++)
+				if (!decision[i].Decide(owner))
 				{
-					if (!decision[i].Decide())
-					{
-						transition = false;
-						break;
-					}
+					transition = false;
+					break;
 				}
-				return transition;
 			}
+			return transition;
 		}
-		public State NextState { get { return nextState; } }
+
 	}
 }
