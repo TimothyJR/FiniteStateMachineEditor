@@ -11,6 +11,7 @@ namespace StateMachine
 	[System.Serializable]
 	public abstract class TransitionDecision : ScriptableObject
 	{
-		public abstract bool Decide(GameObject owner);
+		public abstract bool Decide();
+		public abstract void DecideEnter(GameObject owner);
 	}
 }

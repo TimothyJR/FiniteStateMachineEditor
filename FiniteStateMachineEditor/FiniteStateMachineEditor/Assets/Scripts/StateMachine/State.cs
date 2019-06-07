@@ -42,10 +42,10 @@ namespace StateMachine
 		/// Called everytime the state machine tick is called
 		/// </summary>
 		/// <param name="stateMachine"></param>
-		public virtual void UpdateState(StateMachine stateMachine, GameObject owner)
+		public virtual void UpdateState(StateMachine stateMachine)
 		{
 			DoActions();
-			CheckTransitions(stateMachine, owner);
+			CheckTransitions(stateMachine);
 		}
 
 		/// <summary>
@@ -64,6 +64,10 @@ namespace StateMachine
 			for (int i = 0; i < actions.Length; i++)
 			{
 				actions[i].ActEnter(owner);
+			}
+			for(int i = 0; i < transitions.Count; i++)
+			{
+				transitions[i].DecisionEnter(owner);
 			}
 		}
 
@@ -104,11 +108,11 @@ namespace StateMachine
 		/// Check conditions for moving into other states
 		/// </summary>
 		/// <param name="stateMachine"></param>
-		protected void CheckTransitions(StateMachine stateMachine, GameObject owner)
+		protected void CheckTransitions(StateMachine stateMachine)
 		{
 			for (int i = 0; i < transitions.Count; i++)
 			{
-				bool decisionSucceeded = transitions[i].Transitioning(owner);
+				bool decisionSucceeded = transitions[i].Transitioning();
 
 				if (decisionSucceeded)
 				{

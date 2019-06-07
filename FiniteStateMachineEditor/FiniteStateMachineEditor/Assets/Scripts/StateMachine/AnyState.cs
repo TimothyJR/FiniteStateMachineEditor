@@ -6,9 +6,9 @@ namespace StateMachine
 {
 	public class AnyState : State
 	{
-		public override void UpdateState(StateMachine stateMachine, GameObject owner)
+		public override void UpdateState(StateMachine stateMachine)
 		{
-			CheckTransitions(stateMachine, owner);
+			CheckTransitions(stateMachine);
 		}
 	}
 }

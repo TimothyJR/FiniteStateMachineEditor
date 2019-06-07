@@ -12,28 +12,36 @@ namespace StateMachine
 		[SerializeField] private TransitionDecision[] decision;
 		[SerializeField, HideInInspector] private State nextState;
 
+		public State NextState { get { return nextState; } }
 
 		public Transition(State state)
 		{
 			nextState = state;
 		}
-		public State NextState { get { return nextState; } }
 
 		/// <summary>
 		/// Returns true if a transition condition is met
 		/// </summary>
-		public bool Transitioning(GameObject owner)
+		public bool Transitioning()
 		{
 			bool transition = true;
 			for (int i = 0; i < decision.Length; i++)
 			{
-				if (!decision[i].Decide(owner))
+				if (!decision[i].Decide())
 				{
 					transition = false;
 					break;
 				}
 			}
 			return transition;
+		}
+
+		public void DecisionEnter(GameObject owner)
+		{
+			for (int i = 0; i < decision.Length; i++)
+			{
+				decision[i].DecideEnter(owner);
+			}
 		}
 
 	}
