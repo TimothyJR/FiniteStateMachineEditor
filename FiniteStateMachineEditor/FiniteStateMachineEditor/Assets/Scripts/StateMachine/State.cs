@@ -80,6 +80,10 @@ namespace StateMachine
 			{
 				actions[i].ActExit();
 			}
+			for(int i = 0; i < transitions.Count; i++)
+			{
+				transitions[i].DecisionExit();
+			}
 		}
 
 		/// <summary>

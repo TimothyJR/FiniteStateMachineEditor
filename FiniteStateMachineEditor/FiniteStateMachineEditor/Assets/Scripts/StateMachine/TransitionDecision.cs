@@ -13,5 +13,6 @@ namespace StateMachine
 	{
 		public abstract bool Decide();
 		public abstract void DecideEnter(GameObject owner);
+		public abstract void DecideExit();
 	}
 }

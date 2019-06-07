@@ -9,7 +9,7 @@ namespace StateMachine
 	[System.Serializable]
 	public class Transition
 	{
-		[SerializeField] private TransitionDecision[] decision;
+		[SerializeField] private TransitionDecision[] decisions;
 		[SerializeField, HideInInspector] private State nextState;
 
 		public State NextState { get { return nextState; } }
@@ -25,9 +25,9 @@ namespace StateMachine
 		public bool Transitioning()
 		{
 			bool transition = true;
-			for (int i = 0; i < decision.Length; i++)
+			for (int i = 0; i < decisions.Length; i++)
 			{
-				if (!decision[i].Decide())
+				if (!decisions[i].Decide())
 				{
 					transition = false;
 					break;
@@ -38,9 +38,17 @@ namespace StateMachine
 
 		public void DecisionEnter(GameObject owner)
 		{
-			for (int i = 0; i < decision.Length; i++)
+			for (int i = 0; i < decisions.Length; i++)
 			{
-				decision[i].DecideEnter(owner);
+				decisions[i].DecideEnter(owner);
+			}
+		}
+
+		public void DecisionExit()
+		{
+			for(int i = 0; i < decisions.Length; i++)
+			{
+				decisions[i].DecideExit();
 			}
 		}
 
