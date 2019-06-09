@@ -7,14 +7,14 @@ using UnityEditor;
 namespace StateMachine
 {
 	[System.Serializable]
-	public class Transition
+	public class Transition : ScriptableObject
 	{
 		[SerializeField] private TransitionDecision[] decisions;
 		[SerializeField, HideInInspector] private State nextState;
 
 		public State NextState { get { return nextState; } }
 
-		public Transition(State state)
+		public void Init(State state)
 		{
 			nextState = state;
 		}

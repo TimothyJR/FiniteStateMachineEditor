@@ -12,28 +12,27 @@ namespace StateMachine
 	[CustomEditor(typeof(TransitionDataHolder))]
 	public class TransitionDataHolderInSpector : Editor
 	{
-		SerializedProperty transitionList;
-
-		private void OnEnable()
-		{
-			transitionList = serializedObject.FindProperty("transitionsForState");
-		}
-
 		public override void OnInspectorGUI()
 		{
 			TransitionDataHolder transitionData = (TransitionDataHolder)target;
 
-			GUILayout.Label("Transition to: " + transitionData.TransitionsForState[0].NextState.name);
+			GUILayout.Label("Transition to: " + transitionData.TransitionsForState[0].NextState.StateName);
 
-			for (int i = 0; i < transitionData.TransitionsForState.Count; i++)
+			for(int i = 0; i < transitionData.TransitionsForState.Count; i++)
 			{
-				SerializedProperty listEntry = transitionList.GetArrayElementAtIndex(i);
-				EditorGUILayout.PropertyField(listEntry, true);
+				// Get the decisions array
+				SerializedObject obj = new UnityEditor.SerializedObject(transitionData.TransitionsForState[i]);
+				SerializedProperty decisions = obj.FindProperty("decisions");
 
+				// Display array and edit it
+				EditorGUILayout.PropertyField(decisions, true);
 				serializedObject.ApplyModifiedProperties();
 
+				// Create button to remove transitions
 				if(GUILayout.Button("Remove this transition"))
 				{
+					// If there is more than one transition, remove only the single transition
+					// If there is only one transition, remove the transition and destroy the state connection
 					if(transitionData.TransitionsForState.Count > 1)
 					{
 						if(transitionData.RemoveIndividualAction != null)

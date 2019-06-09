@@ -59,6 +59,9 @@ namespace StateMachine
 		public static float EditorHeight
 		{ get { return previousHeight; } }
 
+		public bool CreatingTransition
+		{ set { creatingTransition = value; } }
+
 		/// <summary>
 		/// Opens a StateMachine scriptable object when it is double clicked in inspector
 		/// </summary>
@@ -136,6 +139,16 @@ namespace StateMachine
 			{
 				Repaint();
 			}
+		}
+
+		/// <summary>
+		/// Saves data to the scriptable object
+		/// This makes the save button redundant
+		/// This is necessary to prevent the state machine from having unused transitions remain in the file
+		/// </summary>
+		private void OnDestroy()
+		{
+			AssetDatabase.SaveAssets();
 		}
 
 		/// <summary>
@@ -280,6 +293,7 @@ namespace StateMachine
 					}
 					else if(e.button == 1)
 					{
+						creatingTransition = false;
 						ProcessContextMenu(e.mousePosition);
 					}
 					break;
@@ -304,7 +318,7 @@ namespace StateMachine
 			for (int i = states.Count - 1; i >= 0; i--)
 			{
 
-				guiChanged = states[i].ProcessEvent(e);
+				guiChanged = states[i].ProcessEvent(e, this);
 
 				if (guiChanged)
 				{
@@ -314,7 +328,7 @@ namespace StateMachine
 
 			if(anyStateNode != null)
 			{
-				guiChanged = anyStateNode.ProcessEvent(e);
+				guiChanged = anyStateNode.ProcessEvent(e, this);
 
 				if (guiChanged)
 				{
@@ -326,9 +340,10 @@ namespace StateMachine
 		private void ProcessTransitionEvents(Event e)
 		{
 			subComponentEventOccured = false;
+
 			for (int i = 0; i < states.Count; i++)
 			{
-				states[i].ProcessTransitionEvents(e);
+				states[i].ProcessTransitionEvents(e, this);
 			}
 		}
 
@@ -484,6 +499,12 @@ namespace StateMachine
 					}
 				}
 			}
+
+			for(int i = 0; i < state.NodeState.Transitions.Count; i++)
+			{
+				DestroyImmediate(state.NodeState.Transitions[i], true);
+			}
+
 			states.Remove(state);
 			DestroyImmediate(state.NodeState, true);
 		}

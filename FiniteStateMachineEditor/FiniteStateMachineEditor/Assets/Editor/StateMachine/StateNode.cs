@@ -179,7 +179,7 @@ namespace StateMachine
 		/// </summary>
 		/// <param name="e"></param>
 		/// <returns></returns>
-		public bool ProcessEvent(Event e)
+		public bool ProcessEvent(Event e, StateMachineEditor stateMachine)
 		{
 			switch (e.type)
 			{
@@ -209,6 +209,9 @@ namespace StateMachine
 						{
 							GUI.changed = true;
 							stateStyle = StateMachineEditor.SelectedStyle;
+
+							// Stop the state machine from transitioning
+							stateMachine.CreatingTransition = false;
 
 							ProcessContextMenu();
 							e.Use();
@@ -245,7 +248,7 @@ namespace StateMachine
 		/// <param name="e"></param>
 		/// <param name="transition"></param>
 		/// <returns></returns>
-		public void ProcessTransitionEvents(Event e)
+		public void ProcessTransitionEvents(Event e, StateMachineEditor stateMachine)
 		{
 			for(int i = 0; i < connectedStates.Count; i++)
 			{
@@ -264,6 +267,7 @@ namespace StateMachine
 							}
 							else if (e.button == 1)
 							{
+								stateMachine.CreatingTransition = false;
 								ProcessTransitionContextMenu(stateTransitionInfo[connectedStates[i]]);
 								e.Use();
 							}
@@ -359,8 +363,11 @@ namespace StateMachine
 		/// </summary>
 		public void CreateTransition(StateNode endState)
 		{
-			Transition transition = new Transition(endState.state);
+			Transition transition = ScriptableObject.CreateInstance<Transition>();
+			transition.Init(endState.state);
 			state.Transitions.Add(transition);
+			transition.hideFlags = HideFlags.HideInHierarchy;
+			AssetDatabase.AddObjectToAsset(transition, state);
 			AddTransition(endState, transition);
 		}
 
@@ -405,9 +412,12 @@ namespace StateMachine
 		/// <param name="transitionToRemove"></param>
 		public void RemoveTransition(TransitionDataHolder transition)
 		{
-			transition.OtherWayTransition.TwoWayTransition = false;
-			transition.OtherWayTransition.OtherWayTransition = null;
-			transition.OtherWayTransition.UpdateTrianglePosition(transition.TransitionsForState[0].NextState.Rectangle.center, state.Rectangle.center, transitionClickableSize, twoWayTransitionOffset);
+			if(transition.OtherWayTransition != null)
+			{
+				transition.OtherWayTransition.TwoWayTransition = false;
+				transition.OtherWayTransition.OtherWayTransition = null;
+				transition.OtherWayTransition.UpdateTrianglePosition(transition.TransitionsForState[0].NextState.Rectangle.center, state.Rectangle.center, transitionClickableSize, twoWayTransitionOffset);
+			}
 
 			stateTransitionInfo.Remove(transition.TransitionsForState[0].NextState);
 			connectedStates.Remove(transition.TransitionsForState[0].NextState);
@@ -415,7 +425,10 @@ namespace StateMachine
 			for (int i = 0; i < transition.TransitionsForState.Count; i++)
 			{
 				state.Transitions.Remove(transition.TransitionsForState[i]);
+				UnityEngine.Object.DestroyImmediate(transition.TransitionsForState[i], true);
 			}
+			UnityEngine.Object.DestroyImmediate(transition, true);
+
 		}
 
 		/// <summary>
@@ -431,7 +444,7 @@ namespace StateMachine
 			}
 			this.state.Transitions.Remove(transition);
 			connectedStates.Remove(state);
-			
+			UnityEngine.Object.DestroyImmediate(transition, true);
 		}
 
 		/// <summary>
