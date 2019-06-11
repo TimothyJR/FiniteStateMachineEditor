@@ -519,9 +519,8 @@ namespace StateMachine
 			if(startingState != null)
 			{
 				startingState.SetStyle(defaultStyle);
-				startingState = state;
 			}
-
+			startingState = state;
 			currentSM.CurrentState = state.NodeState;
 		}
 

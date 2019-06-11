@@ -26,7 +26,7 @@ namespace StateMachine
 
 				// Display array and edit it
 				EditorGUILayout.PropertyField(decisions, true);
-				serializedObject.ApplyModifiedProperties();
+				obj.ApplyModifiedProperties();
 
 				// Create button to remove transitions
 				if(GUILayout.Button("Remove this transition"))
