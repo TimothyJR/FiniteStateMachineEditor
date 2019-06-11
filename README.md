@@ -14,3 +14,5 @@ A visual editor for finite state machines. The state machine uses a scriptable o
 2. Transitions are made up of decisions.
    - Transitions can hold more than one decision.
    - A transition only occurs if all decisions return true.
+
+Documentation will come soon as I finish working out issues.
