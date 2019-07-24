@@ -381,8 +381,8 @@ namespace StateMachine
 		private void ProcessContextMenu(Vector2 mousePosition)
 		{
 			GenericMenu genericMenu = new GenericMenu();
-			genericMenu.AddItem(new GUIContent("Add node"), false, () => OnClickAddState(mousePosition));
-			genericMenu.AddItem(new GUIContent("Go to graph origin"), false, ResetOffset);
+			genericMenu.AddItem(new GUIContent("Add State"), false, () => OnClickAddState(mousePosition));
+			genericMenu.AddItem(new GUIContent("Go to Graph Origin"), false, ResetOffset);
 			if (currentSM.AnyState == null)
 			{
 				genericMenu.AddItem(new GUIContent("Add Any State Node"), false, () => CreateAnyState(mousePosition));
@@ -422,6 +422,8 @@ namespace StateMachine
 
 			anyStateNode = new StateNode(anyState, OnClickRemoveState, OnStartTransition, OnStateClick, OnStateChange, OnTransitionClicked, null);
 			currentSM.AnyState = anyState;
+			anyState.hideFlags = HideFlags.HideInHierarchy;
+			AssetDatabase.AddObjectToAsset(anyState, currentSM);
 		}
 
 		/// <summary>

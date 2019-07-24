@@ -296,11 +296,11 @@ namespace StateMachine
 		private void ProcessContextMenu()
 		{
 			GenericMenu genericMenu = new GenericMenu();
-			genericMenu.AddItem(new GUIContent("Create connection"), false, OnClickCreateConnection);
-			genericMenu.AddItem(new GUIContent("Remove node"), false, OnClickRemoveNode);
+			genericMenu.AddItem(new GUIContent("Create Transition"), false, OnClickCreateConnection);
+			genericMenu.AddItem(new GUIContent("Remove State"), false, OnClickRemoveNode);
 			if(StartState != null)
 			{
-				genericMenu.AddItem(new GUIContent("Set as start state"), false, OnSetStartState);
+				genericMenu.AddItem(new GUIContent("Set as Start State"), false, OnSetStartState);
 			}
 			genericMenu.ShowAsContext();
 		}
