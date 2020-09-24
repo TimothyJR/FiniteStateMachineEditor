@@ -1,41 +1,54 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System;
 
-namespace StateMachine
+namespace FStateMachine
 {
 	public class StateNode
 	{
+		// The state associated with this node
 		private State state;
+		public State NodeState
+		{ get { return state; } }
+
+		// The style to draw this node
 		private GUIStyle stateStyle;
 
+		// Whether this node is being dragged
 		private bool isDragged;
 
+		// The states we are connected to
 		private List<State> connectedStates;
 
+		// Action when this node is deleted
 		private Action<StateNode> OnRemoveNode;
+
+		// Action when a transition is made with this node
 		private Action<StateNode> OnCreateConnection;
+
+		// Action when this node is clicked
 		private Action<StateNode> Clicked;
+
+		// Action when this node is changed
 		private Action<StateNode> Changed;
+
+		// Action when this node becomes the start state
 		private Action<StateNode> StartState;
+
+		// Action when the transitions coming out of this node are clicked
 		private Action<TransitionDataHolder> OnTransitionClicked;
 
-		// Transition related
+		// Dictionary of connected states and which transition connects to them
 		Dictionary<State, TransitionDataHolder> stateTransitionInfo;
-		Vector2 transitionClickableSize;
-		float twoWayTransitionOffset;
-
-		public State NodeState
-		{
-			get { return state; }
-		}
-
 		public Dictionary<State, TransitionDataHolder> StateTransitionInfo
-		{
-			set { stateTransitionInfo = value; }
-		}
+		{ set { stateTransitionInfo = value; } }
+
+		// Size of the area that you can click on for a transition
+		Vector2 transitionClickableSize;
+
+		// Offset when transitions go both ways
+		float twoWayTransitionOffset;
 
 		/// <summary>
 		/// Used when creating a new state in the editor
@@ -49,7 +62,10 @@ namespace StateMachine
 		/// <param name="OnChanged"></param>
 		/// <param name="OnTransitionClicked"></param>
 		/// <param name="OnClickStartState"></param>
-		public StateNode(Vector2 position, float width, float height, Action<StateNode> OnClickRemoveState, Action<StateNode> OnClickCreateTransition, Action<StateNode> OnClicked, Action<StateNode> OnChanged, Action<TransitionDataHolder> OnTransitionClicked, Action<StateNode> OnClickStartState)
+		public StateNode(Vector2 position, float width, float height,
+								Action<StateNode> OnClickRemoveState, Action<StateNode> OnClickCreateTransition,
+								Action<StateNode> OnClicked, Action<StateNode> OnChanged,
+								Action<TransitionDataHolder> OnTransitionClicked, Action<StateNode> OnClickStartState)
 		{
 			state = ScriptableObject.CreateInstance<State>();
 			state.StateName = "New State";
@@ -69,7 +85,9 @@ namespace StateMachine
 		/// <param name="OnChanged"></param>
 		/// <param name="OnTransitionClicked"></param>
 		/// <param name="OnClickStartState"></param>
-		public StateNode(State state, Action<StateNode> OnClickRemoveState, Action<StateNode> OnClickCreateTransition, Action<StateNode> OnClicked, Action<StateNode> OnChanged, Action<TransitionDataHolder> OnTransitionClicked, Action<StateNode> OnClickStartState)
+		public StateNode(State state, Action<StateNode> OnClickRemoveState, Action<StateNode> OnClickCreateTransition,
+								Action<StateNode> OnClicked, Action<StateNode> OnChanged,Action<TransitionDataHolder> OnTransitionClicked,
+								Action<StateNode> OnClickStartState)
 		{
 			this.state = state;
 
@@ -83,7 +101,9 @@ namespace StateMachine
 		/// <param name="OnClickCreateTransition"></param>
 		/// <param name="OnClicked"></param>
 		/// <param name="OnChanged"></param>
-		public void Init(Action<StateNode> OnClickRemoveState, Action<StateNode> OnClickCreateTransition, Action<StateNode> OnClicked, Action<StateNode> OnChanged, Action<TransitionDataHolder> OnTransitionClicked, Action<StateNode> OnClickStartState)
+		public void Init(Action<StateNode> OnClickRemoveState, Action<StateNode> OnClickCreateTransition,
+								Action<StateNode> OnClicked, Action<StateNode> OnChanged,
+								Action<TransitionDataHolder> OnTransitionClicked, Action<StateNode> OnClickStartState)
 		{
 			stateStyle = StateMachineEditor.DefaultStyle;
 

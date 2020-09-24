@@ -1,42 +1,31 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
-using System;
 
-namespace StateMachine
+namespace FStateMachine
 {
 	[System.Serializable]
 	public class State : ScriptableObject
 	{
-		[SerializeField] private string stateName;
-		[SerializeField] private Action[] actions;
-		[SerializeField, HideInInspector] private List<Transition> transitions;
-		[SerializeField, HideInInspector] private Rect rectangle;
+#if UNITY_EDITOR
+		// The name of the state
+		[SerializeField]
+		private string stateName;
+		public string StateName { get { return stateName; } set { stateName = value; } }
 
+		// Position of the node in the graph
+		[SerializeField, HideInInspector]
+		private Rect rectangle;
+		public Rect Rectangle { get { return rectangle; } set { rectangle = value; } }
+#endif
+		// Actions that are performed when in the state
+		[SerializeField]
+		private Action[] actions = null;
+		public Action[] Actions {  get { return actions; } set { actions = value; } }
 
-		public List<Transition> Transitions
-		{
-			get { return transitions; }
-			set { transitions = value; }
-		}
-
-		public Rect Rectangle
-		{
-			get { return rectangle; }
-			set { rectangle = value; }
-		}
-
-		public string StateName
-		{
-			get { return stateName; }
-			set { stateName = value; }
-		}
-
-		public State()
-		{
-			transitions = new List<Transition>();
-		}
+		// Groups of decisions that will change the state out of this state
+		[SerializeField, HideInInspector]
+		private List<Transition> transitions = new List<Transition>();
+		public List<Transition> Transitions { get { return transitions; } set { transitions = value; } }
 
 		/// <summary>
 		/// Called everytime the state machine tick is called
@@ -124,7 +113,7 @@ namespace StateMachine
 				}
 			}
 		}
-
+#if UNITY_EDITOR
 		/// <summary>
 		/// Used to update the node position
 		/// Since rect is a struct it prevents creating a new rect every frame that a node is moved
@@ -134,7 +123,6 @@ namespace StateMachine
 		{
 			rectangle.position += delta;
 		}
+#endif
 	}
-
-
 }

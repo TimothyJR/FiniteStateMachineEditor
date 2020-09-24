@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace StateMachine
+namespace FStateMachine
 {
 	/// <summary>
 	/// These are actions done by states

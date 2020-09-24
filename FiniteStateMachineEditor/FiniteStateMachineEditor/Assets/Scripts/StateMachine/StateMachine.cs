@@ -2,34 +2,32 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace StateMachine
+namespace FStateMachine
 {
 	[CreateAssetMenu(menuName = "StateMachine/StateMachine"), System.Serializable]
 	public class StateMachine : ScriptableObject
 	{
-	
-		[SerializeField] private State currentState;
-		[SerializeField, HideInInspector] private State anyState; 
-		[SerializeField, HideInInspector] private Vector2 graphOffset = new Vector2(0,0);
+		// The State the FSM is currently in
+		// If nothing has run, this is the starting state
+		[SerializeField]
+		private State currentState;
+		public State CurrentState { get { return currentState; } set { currentState = value; } }
+
+		// This state does not have any actions
+		// It is used to transition to states that can be transitioned to at any time
+		[SerializeField, HideInInspector]
+		private State anyState;
+		public State AnyState { get { return anyState; } set { anyState = value; } }
+
+		// The gameobject that holdss this state machine
 		private GameObject machineHolder;
 
-		public State CurrentState
-		{
-			get { return currentState; }
-			set { currentState = value; }
-		}
+#if UNITY_EDITOR
+		[SerializeField, HideInInspector]
+		private Vector2 graphOffset = new Vector2(0,0);
+		public Vector2 GraphOffset { get { return graphOffset; } set { graphOffset = value; } }
+#endif
 
-		public State AnyState
-		{
-			get { return anyState; }
-			set { anyState = value; }
-		}
-
-		public Vector2 GraphOffset
-		{
-			get { return graphOffset; }
-			set { graphOffset = value; }
-		}
 
 		/// <summary>
 		/// Initialize the state machine

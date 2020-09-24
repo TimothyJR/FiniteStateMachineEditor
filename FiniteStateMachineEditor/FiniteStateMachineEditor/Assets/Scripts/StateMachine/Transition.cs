@@ -1,17 +1,21 @@
-﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using System;
-using UnityEditor;
 
-namespace StateMachine
+namespace FStateMachine
 {
 	[System.Serializable]
 	public class Transition : ScriptableObject
 	{
+		/// <summary>
+		/// List of all the different decisions that need to happen to transition out of the state
+		/// </summary>
+		#pragma warning disable 0649
 		[SerializeField] private TransitionDecision[] decisions;
-		[SerializeField, HideInInspector] private State nextState;
+		#pragma warning restore 0649
 
+		/// <summary>
+		/// The state we will transition to
+		/// </summary>
+		[SerializeField, HideInInspector] private State nextState;
 		public State NextState { get { return nextState; } }
 
 		public void Init(State state)
@@ -36,6 +40,10 @@ namespace StateMachine
 			return transition;
 		}
 
+		/// <summary>
+		/// Used to initialize any variables for the decisions
+		/// </summary>
+		/// <param name="owner"></param>
 		public void DecisionEnter(GameObject owner)
 		{
 			for (int i = 0; i < decisions.Length; i++)
@@ -44,6 +52,9 @@ namespace StateMachine
 			}
 		}
 
+		/// <summary>
+		/// Used to clean up any variables for the decisions
+		/// </summary>
 		public void DecisionExit()
 		{
 			for(int i = 0; i < decisions.Length; i++)

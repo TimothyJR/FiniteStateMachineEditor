@@ -1,18 +1,25 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor;
+﻿using UnityEngine;
 
 // Class used to draw lines in editor
 // Based on the script found at http://wiki.unity3d.com/index.php/DrawLine
 
-namespace StateMachine
+namespace FStateMachine
 {
 	public class EditorDraw
 	{
+		// Texture for drawing a line
 		private static Texture2D lineTexture;
+
+		// Texture for drawing a triangle
 		private static Texture2D triangleTexture;
 
+		/// <summary>
+		/// Draws a line between two points
+		/// </summary>
+		/// <param name="pointA"></param>
+		/// <param name="pointB"></param>
+		/// <param name="color"></param>
+		/// <param name="width"></param>
 		public static void DrawLine(Vector2 pointA, Vector2 pointB, Color color, float width)
 		{
 			Matrix4x4 savedGUIMatrix = GUI.matrix;
@@ -45,6 +52,15 @@ namespace StateMachine
 
 		}
 
+		/// <summary>
+		/// Draws line within the bounds of an editor to prevent the line from being invisible
+		/// </summary>
+		/// <param name="pointA"></param>
+		/// <param name="pointB"></param>
+		/// <param name="color"></param>
+		/// <param name="width"></param>
+		/// <param name="boundsX"></param>
+		/// <param name="boundsY"></param>
 		public static void DrawLineInEditorBounds(Vector2 pointA, Vector2 pointB, Color color, float width, float boundsX,  float boundsY)
 		{
 			Matrix4x4 savedGUIMatrix = GUI.matrix;
@@ -58,7 +74,7 @@ namespace StateMachine
 			GUI.color = color;
 
 			// ScaleAroundPivot does not work properly when pointA is outside the editor bounds
-			// So move to a point along the line within the bounds.
+			// So move to a point along the line within the bounds
 			if(pointA.x > boundsX)
 			{
 				if(pointB.x > boundsX)
@@ -137,6 +153,13 @@ namespace StateMachine
 			GUI.color = savedGUIColor;
 		}
 
+		/// <summary>
+		/// Draws a triangle at the specified position and rotation
+		/// </summary>
+		/// <param name="position"></param>
+		/// <param name="rotation"></param>
+		/// <param name="color"></param>
+		/// <param name="size"></param>
 		public static void DrawTriangle(Vector2 position, float rotation, Color color, float size)
 		{
 			Matrix4x4 savedGUIMatrix = GUI.matrix;

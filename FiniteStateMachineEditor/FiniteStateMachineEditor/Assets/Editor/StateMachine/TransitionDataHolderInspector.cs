@@ -1,10 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
-using System;
 
-namespace StateMachine
+namespace FStateMachine
 {
 	/// <summary>
 	/// Used to change the inspector display of transitions

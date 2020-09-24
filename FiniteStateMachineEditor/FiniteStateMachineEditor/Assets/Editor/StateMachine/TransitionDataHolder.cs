@@ -1,11 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 using System;
 
-
-namespace StateMachine
+namespace FStateMachine
 {
 	/// <summary>
 	/// Helper class to hold transition information for the state node
@@ -13,57 +10,49 @@ namespace StateMachine
 	[SerializeField]
 	public class TransitionDataHolder : ScriptableObject
 	{
-		[SerializeField] private List<Transition> transitionsForState;
+		// Holds all transitions
+		[SerializeField]
+		private List<Transition> transitionsForState;
+		public List<Transition> TransitionsForState { get { return transitionsForState; } set { transitionsForState = value; } }
+
+		// Rotation needed to draw graphics between transitions
 		private float rotation;
+		public float Rotation { get { return rotation; } set { rotation = value; } }
+
+		// The clickable area of the transition
 		private Rect clickableArea;
-		private bool selected;
-		private bool twoWayTransition;
-		private TransitionDataHolder otherWayTransition;
-		private Vector2 offsetVector;
-		private Action<TransitionDataHolder> OnRemove;
-		private Action<Transition, TransitionDataHolder> OnRemoveIndividual;
-
-		public float Rotation
-		{
-			get { return rotation; }
-			set { rotation = value; }
-		}
-
-		public List<Transition> TransitionsForState
-		{
-			get { return transitionsForState; }
-			set { transitionsForState = value; }
-		}
-
 		public Rect ClickableArea
-		{
-			get { return clickableArea; }
-			set { clickableArea = value; }
-		}
+		{ get { return clickableArea; } set { clickableArea = value; } }
 
+		// Whether the transition is selected or not
+		private bool selected;
 		public bool Selected
-		{
-			get { return selected; }
-			set { selected = value; }
-		}
+		{ get { return selected; } set { selected = value; } }
 
-		public bool TwoWayTransition
-		{
-			set { twoWayTransition = value; }
-		}
+		// Whether this transition is two way or not
+		private bool twoWayTransition;
+		public bool TwoWayTransition { set { twoWayTransition = value; } }
 
-		public TransitionDataHolder OtherWayTransition
-		{
-			get { return otherWayTransition; }
-			set { otherWayTransition = value; }
-		}
+		// The transition that is going in the opposite direction of this one
+		private TransitionDataHolder otherWayTransition;
+		public TransitionDataHolder OtherWayTransition { get { return otherWayTransition; } set { otherWayTransition = value; } }
 
-		public Action<TransitionDataHolder> RemoveAction
-		{ get { return OnRemove; } }
+		// Offset for a two way transition
+		private Vector2 offsetVector;
 
-		public Action<Transition, TransitionDataHolder> RemoveIndividualAction
-		{ get { return OnRemoveIndividual; } }
+		// Action for removing all transitions
+		private Action<TransitionDataHolder> OnRemove;
+		public Action<TransitionDataHolder> RemoveAction { get { return OnRemove; } }
 
+		// Action for removing an individual transition
+		private Action<Transition, TransitionDataHolder> OnRemoveIndividual;
+		public Action<Transition, TransitionDataHolder> RemoveIndividualAction { get { return OnRemoveIndividual; } }
+
+		/// <summary>
+		/// Initialization
+		/// </summary>
+		/// <param name="removal"></param>
+		/// <param name="removalIndividual"></param>
 		public void Init(Action<TransitionDataHolder> removal, Action<Transition, TransitionDataHolder> removalIndividual)
 		{
 			OnRemove = removal;

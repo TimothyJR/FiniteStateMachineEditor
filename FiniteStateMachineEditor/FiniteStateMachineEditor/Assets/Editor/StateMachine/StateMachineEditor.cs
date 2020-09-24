@@ -1,66 +1,83 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.Callbacks;
 
-namespace StateMachine
+namespace FStateMachine
 {
 	public class StateMachineEditor : EditorWindow
 	{
+		// List of all the states
 		private List<StateNode> states;
+
+		// The state that the state machine will start in
 		private StateNode startingState;
+
+		// The node for the 'any' state
 		private StateNode anyStateNode;
 
+		// The currently opened State Machine
 		private static StateMachine currentSM;
+
+		// The node's default style
 		private static GUIStyle defaultStyle;
+		public static GUIStyle DefaultStyle { get { return defaultStyle; } }
+
+		// The style for when a node is selected
 		private static GUIStyle selectedStyle;
+		public static GUIStyle SelectedStyle { get { return selectedStyle; } }
+
+		// The style for the starting state
 		private static GUIStyle startStyle;
+		public static GUIStyle StartStyle { get { return startStyle; } }
+
+		// The style for the starting state when selected
 		private static GUIStyle startSelectedStyle;
+		public static GUIStyle StartSelectedStyle { get { return startSelectedStyle; } }
+
+		// The style for the 'any' state node
 		private static GUIStyle anyStateStyle;
+		public static GUIStyle AnyStateStyle { get { return anyStateStyle; } }
+
+		// The style for when the 'any' state node is selected
 		private static GUIStyle anyStateSelectedStyle;
+		public static GUIStyle AnyStateSelectedStyle { get { return anyStateSelectedStyle; } }
 
+		// How much the canvas is dragged
 		private Vector2 drag;
-		private static float previousWidth;
-		private static float previousHeight;
 
+		// Previous width of the editor
+		private static float previousWidth;
+		public static float EditorWidth { get { return previousWidth; } }
+
+		// Previous height of the editor
+		private static float previousHeight;
+		public static float EditorHeight { get { return previousHeight; } }
+
+		// The menu bar at the top
 		private Rect menuBar;
+
+		// The menu bar's height
 		private float menuBarHeight = 20.0f;
+
+		// The width of a state node
 		private float nodeWidth = 200.0f;
+
+		// The height of a state node
 		private float nodeHeight = 50.0f;
 
-		StateNode transitionStartState;
-		StateNode transitionEndState;
-		bool creatingTransition;
+		// The starting node of a transition
+		private StateNode transitionStartState;
 
-		bool subComponentEventOccured;
+		// The target node of a transition
+		private StateNode transitionEndState;
 
-		public static GUIStyle DefaultStyle
-		{ get { return defaultStyle; } }
+		// Whether the editor is creating a transition or not
+		private bool creatingTransition;
+		public bool CreatingTransition { set { creatingTransition = value; } }
 
-		public static GUIStyle SelectedStyle
-		{ get { return selectedStyle; } }
-
-		public static GUIStyle StartStyle
-		{ get { return startStyle; } }
-
-		public static GUIStyle StartSelectedStyle
-		{ get { return startSelectedStyle; } }
-
-		public static GUIStyle AnyStateStyle
-		{ get { return anyStateStyle; } }
-
-		public static GUIStyle AnyStateSelectedStyle
-		{ get { return anyStateSelectedStyle; } }
-
-		public static float EditorWidth
-		{ get { return previousWidth; } }
-
-		public static float EditorHeight
-		{ get { return previousHeight; } }
-
-		public bool CreatingTransition
-		{ set { creatingTransition = value; } }
+		// Whether or not an event not realted to creating transitions occured
+		private bool subComponentEventOccured;
 
 		/// <summary>
 		/// Opens a StateMachine scriptable object when it is double clicked in inspector
@@ -74,7 +91,7 @@ namespace StateMachine
 		}
 
 		/// <summary>
-		/// Loads state machine graph and set styles.
+		/// Loads state machine graph and set styles
 		/// </summary>
 		private void OnEnable()
 		{
@@ -125,15 +142,12 @@ namespace StateMachine
 			DrawTransitions();
 			DrawConnectionLine(Event.current);
 			DrawStateNodes();
-			
-
 
 			DrawMenuBar();
 
 			ProcessTransitionEvents(Event.current);
 			ProcessStateEvents(Event.current);
 			ProcessEvents(Event.current);
-
 
 			if (GUI.changed)
 			{
@@ -159,7 +173,6 @@ namespace StateMachine
 			if (position.width != previousWidth)
 			{
 				menuBar.width = position.width;
-
 				previousWidth = position.width;
 			}
 
@@ -209,7 +222,7 @@ namespace StateMachine
 			GUILayout.BeginArea(menuBar, EditorStyles.toolbar);
 			GUILayout.BeginHorizontal();
 
-			if (GUILayout.Button(new GUIContent("Save"), EditorStyles.toolbarButton, GUILayout.Width(35.0f)))
+			if (GUILayout.Button(new GUIContent("Validate"), EditorStyles.toolbarButton, GUILayout.Width(35.0f)))
 			{
 				Save();
 			}
@@ -289,7 +302,6 @@ namespace StateMachine
 						{
 							Selection.activeObject = currentSM;
 						}
-
 					}
 					else if(e.button == 1)
 					{
@@ -344,6 +356,11 @@ namespace StateMachine
 			for (int i = 0; i < states.Count; i++)
 			{
 				states[i].ProcessTransitionEvents(e, this);
+			}
+
+			if(anyStateNode != null)
+			{
+				anyStateNode.ProcessTransitionEvents(e, this);
 			}
 		}
 
